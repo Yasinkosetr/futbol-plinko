@@ -3,28 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Plinko Lig Savaşları</title>
+<title>Plinko Lig Savaşları Pro</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
     --gold: #FFD700;
-    --gold-dim: #B8960C;
-    --green-dark: #0d2a0d;
-    --green-mid: #1a4a1a;
-    --green-bright: #2ecc71;
-    --surface: rgba(10,20,10,0.92);
-    --glass: rgba(255,255,255,0.06);
-    --border: rgba(255,255,255,0.12);
-    --text: #ffffff; /* Ana metin rengi tam beyaz yapıldı */
-    --muted: rgba(240,237,229,0.6);
+    --neon-green: #00ff66;
+    --border: rgba(255,255,255,0.05);
+    --text: #ffffff;
   }
 
   html, body {
     width: 100%; height: 100%;
-    background: #050d05;
+    background: #020602;
     display: flex; justify-content: center; align-items: center;
     font-family: 'Rajdhani', sans-serif;
     overflow: hidden;
@@ -34,363 +28,164 @@
   #game-wrapper {
     position: relative;
     width: 400px; height: 700px;
-    border-radius: 24px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow:
-      0 0 0 1px rgba(255,215,0,0.15),
-      0 0 40px rgba(0,0,0,0.8),
-      0 0 80px rgba(0,50,0,0.4);
+    box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 0 2px rgba(255,255,255,0.05);
+    background: #06110a;
   }
 
-  @media (max-height: 720px) {
-    #game-wrapper { transform: scale(0.9); transform-origin: center; }
-  }
-  @media (max-height: 640px) {
-    #game-wrapper { transform: scale(0.8); transform-origin: center; }
-  }
+  @media (max-height: 720px) { #game-wrapper { transform: scale(0.9); } }
+  @media (max-height: 640px) { #game-wrapper { transform: scale(0.8); } }
 
-  @keyframes shake {
-    0%,100% { transform: translate(0,0) rotate(0deg); }
-    15%  { transform: translate(-3px, 2px) rotate(-1deg); }
-    30%  { transform: translate(3px, -2px) rotate(1deg); }
-    45%  { transform: translate(-2px, 3px) rotate(0deg); }
-    60%  { transform: translate(2px, -3px) rotate(-0.5deg); }
-    75%  { transform: translate(-1px, 2px) rotate(0.5deg); }
-  }
-  .shake { animation: shake 0.4s ease-out; }
+  #game-canvas { position: absolute; top: 0; left: 0; width: 400px; height: 700px; display: block; }
+  #ui-layer { position: absolute; top: 0; left: 0; width: 400px; height: 700px; pointer-events: none; }
 
-  @keyframes pulse-glow {
-    0%,100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
-    50% { box-shadow: 0 0 25px rgba(255,215,0,0.7), 0 0 50px rgba(255,215,0,0.3); }
-  }
-
-  @keyframes float-up {
-    0%   { opacity: 1; transform: translateY(0) scale(1.3); }
-    100% { opacity: 0; transform: translateY(-80px) scale(0.9); }
-  }
-
-  @keyframes slide-in-down {
-    from { opacity: 0; transform: translateY(-20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes slide-in-up {
-    from { opacity: 0; transform: translateY(30px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fade-in {
-    from { opacity: 0; } to { opacity: 1; }
-  }
-
-  #game-canvas {
-    position: absolute; top: 0; left: 0;
-    width: 400px; height: 700px;
-    display: block;
-  }
-
-  /* ─── UI LAYER ─────────────────────────── */
-  #ui-layer {
-    position: absolute; top: 0; left: 0;
-    width: 400px; height: 700px;
-    pointer-events: none;
-  }
-
-  /* ─── SCOREBOARD ─────────────────────────── */
+  /* ─── SCOREBOARD (BÜYÜTÜLDÜ) ─────────────────────────── */
   #scoreboard {
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 72px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 100%);
+    position: absolute; top: 0; left: 0; right: 0; 
+    height: 140px; /* Yükseklik arttı (Eski: 115px) */
+    background: linear-gradient(180deg, #070d12 0%, #030608 100%);
     border-bottom: 1px solid var(--border);
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 8px;
-    z-index: 5;
-    animation: slide-in-down 0.4s ease;
+    display: none; align-items: center; justify-content: space-between;
+    padding: 15px 20px 10px 20px; z-index: 5;
   }
 
-  .score-block {
-    display: flex; flex-direction: column;
-    align-items: center; gap: 3px;
-    width: 140px;
+  .team-block { display: flex; flex-direction: column; align-items: center; width: 140px; } /* Genişlik arttı */
+  
+  /* Logo Etrafındaki Dönen Işık Container'ı (BÜYÜTÜLDÜ) */
+  .logo-wrap {
+    position: relative; 
+    width: 80px; height: 80px; /* Büyüdü (Eski: 64x64) */
+    border-radius: 50%; display: flex; justify-content: center; align-items: center;
+    margin-bottom: 5px; overflow: hidden;
   }
+  .logo-wrap::before {
+    content: ''; position: absolute; width: 150%; height: 150%;
+    background: conic-gradient(from 0deg, transparent 70%, var(--glow-color) 100%);
+    animation: spinGlow 1.5s linear infinite; z-index: 0;
+  }
+  .logo-wrap::after {
+    content: ''; position: absolute; inset: 3px; 
+    background: #050a0f; border-radius: 50%; z-index: 0;
+  }
+  @keyframes spinGlow { 100% { transform: rotate(360deg); } }
 
-  .team-badge {
+  .team-logo { 
+      width: 60px; height: 60px; /* Büyüdü (Eski: 46x46) */
+      object-fit: contain; z-index: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,1)); 
+  }
+  
+  /* Bembeyaz, Parlayan TAM İSİMLER */
+  .team-name { 
+      font-family: 'Bebas Neue', sans-serif; 
+      font-size: 18px; /* İsimler uzadığı için punto biraz dengelendi */
+      color: #ffffff; 
+      letter-spacing: 1px; 
+      text-transform: uppercase; 
+      white-space: nowrap;
+      text-shadow: 0 0 5px rgba(255,255,255,0.5);
+      width: 100%; text-align: center; overflow: hidden; text-overflow: ellipsis; /* Sığmazsa üç nokta */
+  }
+  
+  .center-block { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+  .score-display { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  
+  .score-num { font-family: 'Bebas Neue', sans-serif; font-size: 50px; color: #fff; line-height: 1; transition: transform 0.15s; }
+  .score-num-a { color: var(--gold); text-shadow: 0 0 20px rgba(255,215,0,0.6); }
+  .score-num-b { color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.4); }
+  .score-colon { font-family: 'Bebas Neue', sans-serif; font-size: 35px; color: #555; padding-bottom: 5px; }
+  .score-bump { transform: scale(1.4) !important; }
+
+  .ball-timer {
     display: flex; align-items: center; gap: 6px;
+    background: rgba(0, 255, 102, 0.08); border: 1px solid rgba(0, 255, 102, 0.4);
+    padding: 4px 14px; border-radius: 20px;
+    font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 800; color: var(--neon-green);
+    letter-spacing: 1px;
   }
+  .ball-timer .dot { width: 6px; height: 6px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 6px var(--neon-green); }
 
-  .team-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    flex-shrink: 0;
-    border: 1px solid rgba(255,255,255,0.5); /* Noktayı belirginleştirir */
+  /* ─── 3-2-1 GERİ SAYIM EKRANI ─────────────────────────── */
+  #countdown-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 100; pointer-events: none;
   }
-
-  .team-label {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 14px; letter-spacing: 1.5px;
-    color: #ffffff; /* Her zaman beyaz kalsın okunabilirlik için */
-    text-align: center;
-    line-height: 1.1;
+  #countdown-text {
+    font-family: 'Bebas Neue', sans-serif; font-size: 150px; color: var(--gold);
+    text-shadow: 0 0 30px rgba(255,215,0,0.8), 0 5px 15px rgba(0,0,0,1);
+    opacity: 0; transform: scale(0.5);
   }
-
-  .score-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 38px; color: #fff; line-height: 1;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.9);
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .score-bump { transform: scale(1.6) !important; }
-
-  #ball-counter {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-  }
-
-  #ball-label {
-    font-size: 10px; color: #aaaaaa;
-    letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
-  }
-
-  #ball-count {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 38px; color: var(--gold);
-    text-shadow: 0 0 15px rgba(255,215,0,0.5);
-    line-height: 1;
-  }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(0.5); } 20% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(2); } }
+  @keyframes popInFinal { 0% { opacity: 0; transform: scale(0.5); } 20% { opacity: 1; transform: scale(1.2); } 80% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.5); filter: blur(10px); } }
 
   /* ─── SETUP MODAL ─────────────────────────── */
   #setup-modal {
-    position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(160deg, #0a1a0a 0%, #050f05 50%, #0a1a0a 100%);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    z-index: 30; pointer-events: all;
-    padding: 20px;
+    position: absolute; inset: 0; background: radial-gradient(circle at 50% 30%, #0a1f0a 0%, #020602 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 30; pointer-events: all; padding: 20px;
   }
-
-  #setup-modal::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(255,255,255,0.015) 18px, rgba(255,255,255,0.015) 20px),
-      repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(255,255,255,0.01) 18px, rgba(255,255,255,0.01) 20px);
-    pointer-events: none;
-  }
-
-  .setup-header {
-    text-align: center; margin-bottom: 24px; position: relative;
-    animation: slide-in-down 0.5s ease;
-  }
-
-  .setup-trophy {
-    font-size: 42px; display: block; margin-bottom: 6px;
-    filter: drop-shadow(0 0 15px rgba(255,215,0,0.6));
-  }
-
-  .setup-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px; letter-spacing: 4px;
-    background: linear-gradient(135deg, #FFD700, #FF8C00);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: none;
-  }
-
-  .setup-subtitle {
-    font-size: 11px; color: var(--muted);
-    letter-spacing: 3px; text-transform: uppercase;
-    margin-top: 4px;
-  }
-
-  .setup-form {
-    width: 100%; max-width: 320px;
-    animation: slide-in-up 0.5s ease 0.1s both;
-  }
-
-  .form-group {
-    margin-bottom: 14px;
-  }
-
-  .form-group label {
-    display: block; color: var(--muted);
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 2px; text-transform: uppercase;
-    margin-bottom: 6px; padding-left: 4px;
-  }
-
-  .form-group select {
-    width: 100%; padding: 12px 16px;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 15px; font-weight: 700;
-    background: rgba(255,255,255,0.06);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 12px; outline: none;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-    transition: border-color 0.2s, background-color 0.2s;
-  }
-
-  .form-group select:focus {
-    border-color: rgba(255,215,0,0.4);
-    background-color: rgba(255,255,255,0.09);
-  }
-
-  .form-group select option {
-    background: #111c11; color: #fff;
-  }
-
-  .vs-divider {
-    display: flex; align-items: center; gap: 10px;
-    margin: 6px 0;
-  }
-
-  .vs-line {
-    flex: 1; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border), transparent);
-  }
-
-  .vs-badge {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px; letter-spacing: 3px;
-    color: var(--gold);
-    padding: 4px 12px;
-    border: 1px solid rgba(255,215,0,0.3);
-    border-radius: 20px;
-    background: rgba(255,215,0,0.08);
-  }
-
+  .setup-trophy { font-size: 55px; margin-bottom: 5px; filter: drop-shadow(0 0 20px rgba(255,215,0,0.5)); }
+  .setup-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 3px; color: var(--gold); text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+  .setup-subtitle { font-size: 12px; color: #aaa; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 25px; }
+  .setup-form { width: 100%; max-width: 320px; }
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; color: #ddd; font-size: 11px; font-weight: 800; letter-spacing: 1px; margin-bottom: 5px; text-transform: uppercase; }
+  .form-group select { width: 100%; padding: 12px; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; background: rgba(0,0,0,0.5); color: #fff; border: 2px solid rgba(255,255,255,0.2); border-radius: 8px; outline: none; cursor: pointer; }
+  .form-group select:focus { border-color: var(--gold); }
+  .vs-divider { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .vs-line { flex: 1; height: 2px; background: rgba(255,255,255,0.1); }
+  .vs-badge { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); padding: 2px 15px; border-radius: 20px; background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.3); }
   #start-setup-btn {
-    width: 100%; margin-top: 20px;
-    background: linear-gradient(135deg, #2ecc71 0%, #1a8a4a 100%);
-    border: none; border-radius: 14px;
-    color: #fff; font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px; letter-spacing: 3px;
-    padding: 16px; cursor: pointer;
-    box-shadow: 0 4px 20px rgba(46,204,113,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset;
-    transition: transform 0.15s, box-shadow 0.15s;
-    pointer-events: all;
+    width: 100%; margin-top: 25px; padding: 16px;
+    background: linear-gradient(135deg, #2ecc71, #1e824c); border: none; border-radius: 12px;
+    color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px;
+    cursor: pointer; box-shadow: 0 6px 20px rgba(46,204,113,0.4); transition: transform 0.1s;
   }
+  #start-setup-btn:active { transform: scale(0.96); }
 
-  #start-setup-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(46,204,113,0.45); }
-  #start-setup-btn:active { transform: translateY(0); }
-
-  /* ─── DROP BUTTON ─────────────────────────── */
-  #btn-area {
-    position: absolute; top: 82px; left: 50%;
-    transform: translateX(-50%);
-    pointer-events: all; z-index: 50;
-    display: none;
-  }
-
-  #drop-btn {
-    background: linear-gradient(135deg, #FFD700 0%, #FF6B00 100%);
-    border: none; border-radius: 50px;
-    color: #000; font-family: 'Bebas Neue', sans-serif;
-    font-size: 16px; letter-spacing: 2px;
-    padding: 11px 28px; cursor: pointer;
-    box-shadow: 0 4px 20px rgba(255,160,0,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset;
-    animation: pulse-glow 2s ease-in-out infinite;
-    transition: transform 0.15s;
-  }
-
-  #drop-btn:active { transform: scale(0.95); }
-
-  /* ─── GAME OVER ─────────────────────────── */
+  /* ─── GAME OVER EKRANI ─────────────────────────── */
   #game-over {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(160deg, rgba(5,20,5,0.97) 0%, rgba(10,30,10,0.97) 100%);
-    border: 1px solid rgba(255,215,0,0.5);
-    border-radius: 20px;
-    padding: 32px 24px;
-    text-align: center; display: none;
-    pointer-events: all; z-index: 20;
-    box-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 80px rgba(255,215,0,0.2);
-    width: 300px;
-    animation: fade-in 0.4s ease;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, rgba(15,15,15,0.98), rgba(5,5,5,0.98)); 
+    box-shadow: 0 0 0 2px var(--gold), 0 0 60px rgba(255,215,0,0.4), inset 0 0 30px rgba(255,215,0,0.1);
+    border-radius: 24px; padding: 40px 20px;
+    text-align: center; display: none; pointer-events: all; z-index: 60; width: 88%;
+    animation: fadeScaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-
-  .game-over-icon { font-size: 48px; margin-bottom: 10px; display: block; }
-
-  #game-over h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    color: var(--gold); font-size: 28px;
-    letter-spacing: 3px; margin-bottom: 6px;
+  @keyframes fadeScaleIn { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+  
+  .go-header { font-family: 'Bebas Neue', sans-serif; color: var(--gold); font-size: 42px; margin-bottom: 5px; letter-spacing: 4px; text-shadow: 0 2px 10px rgba(0,0,0,1); }
+  .go-subtitle { color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; }
+  
+  .final-score-display { 
+      display: flex; align-items: center; justify-content: center; gap: 20px; 
+      background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; 
+      border: 1px solid rgba(255,255,255,0.05); margin-bottom: 25px;
   }
-
-  .final-score-display {
-    display: flex; align-items: center; justify-content: center;
-    gap: 16px; margin: 16px 0;
-    padding: 12px; border-radius: 12px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
+  .final-team-name { font-size: 14px; color: #ccc; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+  .final-score-num { font-family: 'Bebas Neue', sans-serif; font-size: 60px; color: #fff; line-height: 1; }
+  .final-score-num.winner { color: var(--gold); text-shadow: 0 0 25px rgba(255,215,0,0.8); transform: scale(1.1); }
+  
+  #result-text { color: #fff; font-size: 20px; font-weight: 800; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+  
+  #restart-btn { 
+      width: 90%; padding: 16px; background: linear-gradient(135deg, #FFD700, #FF8C00); 
+      border: none; border-radius: 12px; color: #000; font-family: 'Bebas Neue', sans-serif; 
+      font-size: 22px; cursor: pointer; letter-spacing: 2px; 
+      box-shadow: 0 6px 20px rgba(255,160,0,0.5); transition: transform 0.1s;
   }
+  #restart-btn:active { transform: scale(0.95); }
 
-  .final-score-team { text-align: center; }
-
-  .final-team-name {
-    font-size: 11px; color: #ffffff;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    margin-bottom: 4px; font-weight: bold;
-  }
-
-  .final-score-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 44px; color: #fff; line-height: 1;
-  }
-
-  .final-score-num.winner { color: var(--gold); text-shadow: 0 0 15px rgba(255,215,0,0.6); }
-
-  .final-score-sep {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px; color: var(--muted);
-  }
-
-  #result-text {
-    color: #ffffff; font-size: 16px;
-    font-weight: bold; margin-bottom: 20px;
-    line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-  }
-
-  #restart-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #FFD700, #FF8C00);
-    border: none; border-radius: 12px;
-    color: #000; font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px; letter-spacing: 2px;
-    padding: 14px; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(255,180,0,0.4);
-    transition: transform 0.15s;
-  }
-  #restart-btn:active { transform: scale(0.97); }
-
-  /* ─── SCORE FLASH ─────────────────────────── */
+  /* ─── ANIMATIONS ─────────────────────────── */
   .score-flash {
-    position: absolute;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px; letter-spacing: 2px;
-    pointer-events: none;
-    animation: float-up 1.1s ease-out forwards;
-    z-index: 15;
-    color: #ffffff; /* Her zaman beyaz */
-    /* Kalın siyah çerçeve (stroke) efekti */
-    text-shadow: 
-      -2px -2px 0 #000,  
-       2px -2px 0 #000,
-      -2px  2px 0 #000,
-       2px  2px 0 #000,
-       0px  4px 10px rgba(0,0,0,0.8); 
-    text-align: center;
-    white-space: nowrap;
+    position: absolute; font-family: 'Bebas Neue', sans-serif; font-size: 45px; pointer-events: none;
+    animation: floatUp 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; z-index: 15; color: #fff;
+    text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 8px 20px rgba(0,0,0,0.8); text-align: center;
   }
-
+  @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(0.8); } 20% { transform: translateY(-20px) scale(1.2); } 100% { opacity: 0; transform: translateY(-120px) scale(1); } }
+  .shake { animation: shakeAnim 0.4s ease-in-out; }
+  @keyframes shakeAnim { 0%,100% { transform: translate(0,0); } 20% { transform: translate(-4px, 4px); } 40% { transform: translate(4px, -4px); } 60% { transform: translate(-2px, 2px); } 80% { transform: translate(2px, -2px); } }
 </style>
 </head>
 <body>
@@ -399,237 +194,195 @@
   <canvas id="game-canvas" width="400" height="700"></canvas>
 
   <div id="ui-layer">
+    
+    <div id="countdown-overlay">
+        <div id="countdown-text">3</div>
+    </div>
 
     <div id="setup-modal">
-      <div class="setup-header">
-        <span class="setup-trophy">🏆</span>
-        <div class="setup-title">LİG SAVAŞI</div>
-        <div class="setup-subtitle">Plinko Futbol Simülatörü</div>
-      </div>
-
+      <div class="setup-trophy">🏆</div>
+      <div class="setup-title">LİG SAVAŞI PRO</div>
+      <div class="setup-subtitle">Sosyal Medya Arena</div>
+      
       <div class="setup-form">
-        <div class="form-group">
-          <label>Lig Seç</label>
-          <select id="league-select" onchange="updateTeamsDropdown()"></select>
-        </div>
-
-        <div class="form-group">
-          <label>⚽ Ev Sahibi</label>
-          <select id="team-a-select"></select>
-        </div>
-
-        <div class="vs-divider">
-          <div class="vs-line"></div>
-          <div class="vs-badge">VS</div>
-          <div class="vs-line"></div>
-        </div>
-
-        <div class="form-group">
-          <label>✈️ Deplasman</label>
-          <select id="team-b-select"></select>
-        </div>
-
-        <button id="start-setup-btn" onclick="applyTeamsAndShowGame()">⚽ Sahaya Çık</button>
+        <div class="form-group"><label>Lig Seç</label><select id="league-select" onchange="updateTeamsDropdown()"></select></div>
+        <div class="form-group"><label>🏟️ Ev Sahibi</label><select id="team-a-select"></select></div>
+        <div class="vs-divider"><div class="vs-line"></div><div class="vs-badge">VS</div><div class="vs-line"></div></div>
+        <div class="form-group"><label>✈️ Deplasman</label><select id="team-b-select"></select></div>
+        <button id="start-setup-btn" onclick="applyTeamsAndStartCountdown()">MAÇA BAŞLA</button>
       </div>
     </div>
 
     <div id="scoreboard">
-      <div class="score-block">
-        <div class="team-badge">
-          <div class="team-dot" id="dot-a"></div>
-          <div class="team-label" id="label-a">EV SAHİBİ</div>
+      <div class="team-block">
+        <div class="logo-wrap" id="logo-wrap-a">
+            <img class="team-logo" id="logo-a" src="" alt="">
         </div>
-        <div class="score-num" id="score-a">0</div>
-      </div>
-
-      <div id="ball-counter">
-        <div id="ball-label">Kalan Top</div>
-        <div id="ball-count">10</div>
-      </div>
-
-      <div class="score-block">
-        <div class="team-badge">
-          <div class="team-dot" id="dot-b"></div>
-          <div class="team-label" id="label-b">DEPLASMAN</div>
+        <div class="team-name" id="label-a">EV SAHİBİ</div> </div>
+      
+      <div class="center-block">
+        <div class="score-display">
+            <div class="score-num score-num-a" id="score-a">0</div>
+            <div class="score-colon">:</div>
+            <div class="score-num score-num-b" id="score-b">0</div>
         </div>
-        <div class="score-num" id="score-b">0</div>
+        <div class="ball-timer"><div class="dot"></div> <span id="ball-count">10</span>&nbsp;TOP</div>
       </div>
-    </div>
-
-    <div id="btn-area">
-      <button id="drop-btn" onclick="startAutoMatch()">⚽ &nbsp;MAÇI BAŞLAT</button>
+      
+      <div class="team-block">
+        <div class="logo-wrap" id="logo-wrap-b">
+            <img class="team-logo" id="logo-b" src="" alt="">
+        </div>
+        <div class="team-name" id="label-b">DEPLASMAN</div> </div>
     </div>
 
     <div id="game-over">
-      <span class="game-over-icon">🏟️</span>
-      <h2>MAÇ BİTTİ</h2>
-
+      <div class="go-header">MAÇ SONUCU</div>
+      <div class="go-subtitle">İstatistikler</div>
+      
       <div class="final-score-display">
-        <div class="final-score-team">
-          <div class="final-team-name" id="go-label-a">A</div>
-          <div class="final-score-num" id="go-score-a">0</div>
+        <div class="team-block" style="width:auto;">
+            <div class="final-team-name" id="go-label-a">A</div>
+            <div class="final-score-num" id="go-score-a">0</div>
         </div>
-        <div class="final-score-sep">-</div>
-        <div class="final-score-team">
-          <div class="final-team-name" id="go-label-b">B</div>
-          <div class="final-score-num" id="go-score-b">0</div>
+        <div class="score-colon">-</div>
+        <div class="team-block" style="width:auto;">
+            <div class="final-team-name" id="go-label-b">B</div>
+            <div class="final-score-num" id="go-score-b">0</div>
         </div>
       </div>
-
+      
       <div id="result-text"></div>
-      <button id="restart-btn" onclick="showSetupModal()">🔄 &nbsp;YENİ MAÇ KUR</button>
+      <button id="restart-btn" onclick="showSetupModal()">🔄 YENİ RAKİP SEÇ</button>
     </div>
-
   </div>
 </div>
 
-<script>
-// ─── CONSTANTS ────────────────────────────────────────
-const W = 400, H = 700;
-const PLINKO_TOP    = 72;   // below scoreboard
-const PLINKO_BOTTOM = H - 110; // above bins
+<audio id="audio-goal" src=""></audio>
 
-// ─── LEAGUE DATA ─────────────────────────────────────
+<script>
+const W = 400, H = 700;
+const PLINKO_TOP = 140; /* Skorbord büyüdüğü için aşağı çekildi (Eski: 115) */
+const PLINKO_BOTTOM = H - 110; 
+
+// ─── SES SİSTEMİ ──────────────────────
+let audioCtx;
+function initAudio() {
+    if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+}
+
+function playBounceSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'sine'; 
+    osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.05);
+    
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); 
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+    
+    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+}
+
+let goalTimeout;
+function playGoalSound(musicFile) {
+    const audioEl = document.getElementById('audio-goal');
+    if (musicFile) {
+        audioEl.src = musicFile;
+        audioEl.currentTime = 0; 
+        audioEl.play().catch(e => console.log("Ses dosyası yüklenemedi:", e));
+        
+        clearTimeout(goalTimeout);
+        goalTimeout = setTimeout(() => {
+            audioEl.pause();
+        }, 3000); 
+    }
+}
+
+// ─── LİG VERİTABANI ───────────────────────────
 const LIGLER = {
   "superlig": {
     isim: "🇹🇷 Türkiye Süper Lig",
     takimlar: {
-      "fb":          { isim: "FENERBAHÇE",    renkAna: "#FBED11", renkIkinci: "#000044", kazandiYazisi: "💛💙 FENERBAHÇE KAZANDI!" },
-      "bjk":         { isim: "BEŞİKTAŞ",      renkAna: "#FFFFFF", renkIkinci: "#222222", kazandiYazisi: "🦅 BEŞİKTAŞ KAZANDI!" },
-      "gs":          { isim: "GALATASARAY",   renkAna: "#A90432", renkIkinci: "#FDB912", kazandiYazisi: "❤️💛 GALATASARAY KAZANDI!" },
-      "ts":          { isim: "TRABZONSPOR",   renkAna: "#8C0B29", renkIkinci: "#45B2E6", kazandiYazisi: "❤️💙 TRABZONSPOR KAZANDI!" },
-      "kasimpasa":   { isim: "KASIMPAŞA",     renkAna: "#000055", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵⚪ KASIMPAŞA KAZANDI!" },
-      "goztepe":     { isim: "GÖZTEPE",       renkAna: "#ED1C24", renkIkinci: "#FFD700", kazandiYazisi: "🔴🟡 GÖZTEPE KAZANDI!" },
-      "antalyaspor": { isim: "ANTALYASPOR",   renkAna: "#E32219", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ANTALYASPOR KAZANDI!" },
-      "alanyaspor":  { isim: "ALANYASPOR",    renkAna: "#F9A800", renkIkinci: "#008751", kazandiYazisi: "🟠🟢 ALANYASPOR KAZANDI!" },
-      "konyaspor":   { isim: "KONYASPOR",     renkAna: "#006400", renkIkinci: "#FFFFFF", kazandiYazisi: "🟢⚪ KONYASPOR KAZANDI!" },
-      "rizespor":    { isim: "RİZESPOR",      renkAna: "#00529F", renkIkinci: "#008000", kazandiYazisi: "🔵🟢 RİZESPOR KAZANDI!" },
-      "samsunspor":  { isim: "SAMSUNSPOR",    renkAna: "#E32219", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ SAMSUNSPOR KAZANDI!" },
-      "eyupspor":    { isim: "EYÜPSPOR",      renkAna: "#4B0082", renkIkinci: "#FFD700", kazandiYazisi: "🟣🟡 EYÜPSPOR KAZANDI!" },
-      "basaksehir":  { isim: "BAŞAKŞEHİR",   renkAna: "#F47321", renkIkinci: "#002A54", kazandiYazisi: "🟠🔵 BAŞAKŞEHİR KAZANDI!" },
-      "karagumruk":  { isim: "KARAGÜMRÜK",    renkAna: "#ED1C24", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ KARAGÜMRÜK KAZANDI!" },
-      "kayserispor": { isim: "KAYSERİSPOR",   renkAna: "#ED1C24", renkIkinci: "#FFD700", kazandiYazisi: "🔴🟡 KAYSERİSPOR KAZANDI!" },
-      "kocaeli":     { isim: "KOCAELİSPOR",   renkAna: "#008037", renkIkinci: "#000000", kazandiYazisi: "🟢⚫ KOCAELİSPOR KAZANDI!" }
+      "fb": { isim: "FENERBAHÇE", kisa: "FB", logo: "./fb-logo.png", muzik: "fb-gol.mp3", renkAna: "#FBED11", renkIkinci: "#000044", kazandiYazisi: "💛💙 FENERBAHÇE KAZANDI!" },
+      "bjk": { isim: "BEŞİKTAŞ", kisa: "BJK", logo: "./bjk-logo.png", muzik: "bjk-gol.mp3", renkAna: "#FFFFFF", renkIkinci: "#222222", kazandiYazisi: "🦅 BEŞİKTAŞ KAZANDI!" },
+      "gs": { isim: "GALATASARAY", kisa: "GS", logo: "./gs-logo.png", muzik: "gs-gol.mp3", renkAna: "#A90432", renkIkinci: "#FDB912", kazandiYazisi: "❤️💛 GALATASARAY KAZANDI!" },
+      "ts": { isim: "TRABZONSPOR", kisa: "TS", logo: "./ts-logo.png", muzik: "ts-gol.mp3", renkAna: "#8C0B29", renkIkinci: "#45B2E6", kazandiYazisi: "❤️💙 TRABZONSPOR KAZANDI!" },
+      "kasimpasa": { isim: "KASIMPAŞA", kisa: "KAS", logo: "./kasimpasa-logo.png", muzik: "kasimpasa-gol.mp3", renkAna: "#000055", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵⚪ KASIMPAŞA KAZANDI!" },
+      "goztepe": { isim: "GÖZTEPE", kisa: "GÖZ", logo: "./goztepe-logo.png", muzik: "goztepe-gol.mp3", renkAna: "#ED1C24", renkIkinci: "#FFD700", kazandiYazisi: "🔴🟡 GÖZTEPE KAZANDI!" },
+      "antalyaspor": { isim: "ANTALYASPOR", kisa: "ANT", logo: "./antalyaspor-logo.png", muzik: "antalyaspor-gol.mp3", renkAna: "#E32219", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ANTALYASPOR KAZANDI!" },
+      "alanyaspor": { isim: "ALANYASPOR", kisa: "ALA", logo: "./alanyaspor-logo.png", muzik: "alanyaspor-gol.mp3", renkAna: "#F9A800", renkIkinci: "#008751", kazandiYazisi: "🟠🟢 ALANYASPOR KAZANDI!" },
+      "konyaspor": { isim: "KONYASPOR", kisa: "KON", logo: "./konyaspor-logo.png", muzik: "konyaspor-gol.mp3", renkAna: "#006400", renkIkinci: "#FFFFFF", kazandiYazisi: "🟢⚪ KONYASPOR KAZANDI!" },
+      "rizespor": { isim: "RİZESPOR", kisa: "RİZ", logo: "./rizespor-logo.png", muzik: "rizespor-gol.mp3", renkAna: "#00529F", renkIkinci: "#008000", kazandiYazisi: "🔵🟢 RİZESPOR KAZANDI!" },
+      "samsunspor": { isim: "SAMSUNSPOR", kisa: "SAM", logo: "./samsunspor-logo.png", muzik: "samsunspor-gol.mp3", renkAna: "#E32219", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ SAMSUNSPOR KAZANDI!" },
+      "eyupspor": { isim: "EYÜPSPOR", kisa: "EYP", logo: "./eyupspor-logo.png", muzik: "eyupspor-gol.mp3", renkAna: "#4B0082", renkIkinci: "#FFD700", kazandiYazisi: "🟣🟡 EYÜPSPOR KAZANDI!" },
+      "basaksehir": { isim: "BAŞAKŞEHİR", kisa: "BŞK", logo: "./basaksehir-logo.png", muzik: "basaksehir-gol.mp3", renkAna: "#F47321", renkIkinci: "#002A54", kazandiYazisi: "🟠🔵 BAŞAKŞEHİR KAZANDI!" },
+      "karagumruk": { isim: "KARAGÜMRÜK", kisa: "FKG", logo: "./karagumruk-logo.png", muzik: "karagumruk-gol.mp3", renkAna: "#ED1C24", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ KARAGÜMRÜK KAZANDI!" },
+      "kayserispor": { isim: "KAYSERİSPOR", kisa: "KAY", logo: "./kayserispor-logo.png", muzik: "kayserispor-gol.mp3", renkAna: "#ED1C24", renkIkinci: "#FFD700", kazandiYazisi: "🔴🟡 KAYSERİSPOR KAZANDI!" },
+      "kocaeli": { isim: "KOCAELİSPOR", kisa: "KOC", logo: "./kocaeli-logo.png", muzik: "kocaeli-gol.mp3", renkAna: "#008037", renkIkinci: "#000000", kazandiYazisi: "🟢⚫ KOCAELİSPOR KAZANDI!" }
     }
   },
   "seriea": {
     isim: "🇮🇹 İtalya Serie A",
     takimlar: {
-      "napoli":    { isim: "NAPOLI",     renkAna: "#005BA9", renkIkinci: "#FFFFFF", kazandiYazisi: "💙 NAPOLI KAZANDI!" },
-      "inter":     { isim: "INTER",      renkAna: "#0018A8", renkIkinci: "#000000", kazandiYazisi: "🔵⚫ INTER KAZANDI!" },
-      "juventus":  { isim: "JUVENTUS",   renkAna: "#FFFFFF", renkIkinci: "#000000", kazandiYazisi: "⚪⚫ JUVENTUS KAZANDI!" },
-      "atalanta":  { isim: "ATALANTA",   renkAna: "#1E4CB3", renkIkinci: "#000000", kazandiYazisi: "🔵⚫ ATALANTA KAZANDI!" },
-      "roma":      { isim: "AS ROMA",    renkAna: "#8E192C", renkIkinci: "#F0C420", kazandiYazisi: "🐺 AS ROMA KAZANDI!" },
-      "lazio":     { isim: "LAZIO",      renkAna: "#87D8F7", renkIkinci: "#000000", kazandiYazisi: "🦅 LAZIO KAZANDI!" },
-      "milan":     { isim: "MILAN",      renkAna: "#FB090B", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ MILAN KAZANDI!" },
-      "fiorentina":{ isim: "FIORENTINA", renkAna: "#482E92", renkIkinci: "#FFFFFF", kazandiYazisi: "🟣 FIORENTINA KAZANDI!" },
-      "bologna":   { isim: "BOLOGNA",    renkAna: "#1A2F5C", renkIkinci: "#C21315", kazandiYazisi: "🔴🔵 BOLOGNA KAZANDI!" },
-      "torino":    { isim: "TORINO",     renkAna: "#8C1C2A", renkIkinci: "#FFFFFF", kazandiYazisi: "🐂 TORINO KAZANDI!" },
-      "udinese":   { isim: "UDINESE",    renkAna: "#FFFFFF", renkIkinci: "#000000", kazandiYazisi: "⚪⚫ UDINESE KAZANDI!" },
-      "genoa":     { isim: "GENOA",      renkAna: "#9B002B", renkIkinci: "#00224A", kazandiYazisi: "🔴🔵 GENOA KAZANDI!" },
-      "como":      { isim: "COMO",       renkAna: "#00458C", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵⚪ COMO KAZANDI!" },
-      "verona":    { isim: "VERONA",     renkAna: "#002F6C", renkIkinci: "#FFD100", kazandiYazisi: "🟡🔵 VERONA KAZANDI!" },
-      "lecce":     { isim: "LECCE",      renkAna: "#FFFF00", renkIkinci: "#ED1B24", kazandiYazisi: "🟡🔴 LECCE KAZANDI!" },
-      "cagliari":  { isim: "CAGLIARI",   renkAna: "#002350", renkIkinci: "#E00024", kazandiYazisi: "🔴🔵 CAGLIARI KAZANDI!" }
+      "napoli": { isim: "NAPOLI", kisa: "NAP", logo: "./napoli-logo.png", muzik: "napoli-gol.mp3", renkAna: "#005BA9", renkIkinci: "#FFFFFF", kazandiYazisi: "💙 NAPOLI KAZANDI!" },
+      "inter": { isim: "INTER", kisa: "INT", logo: "./inter-logo.png", muzik: "inter-gol.mp3", renkAna: "#0018A8", renkIkinci: "#000000", kazandiYazisi: "🔵⚫ INTER KAZANDI!" },
+      "juventus": { isim: "JUVENTUS", kisa: "JUV", logo: "./juventus-logo.png", muzik: "juventus-gol.mp3", renkAna: "#FFFFFF", renkIkinci: "#000000", kazandiYazisi: "⚪⚫ JUVENTUS KAZANDI!" },
+      "milan": { isim: "MILAN", kisa: "MIL", logo: "./milan-logo.png", muzik: "milan-gol.mp3", renkAna: "#FB090B", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ MILAN KAZANDI!" },
+      "roma": { isim: "AS ROMA", kisa: "ROM", logo: "./roma-logo.png", muzik: "roma-gol.mp3", renkAna: "#8E192C", renkIkinci: "#F0C420", kazandiYazisi: "🐺 AS ROMA KAZANDI!" },
+      "lazio": { isim: "LAZIO", kisa: "LAZ", logo: "./lazio-logo.png", muzik: "lazio-gol.mp3", renkAna: "#87D8F7", renkIkinci: "#000000", kazandiYazisi: "🦅 LAZIO KAZANDI!" }
     }
   },
   "bundesliga": {
     isim: "🇩🇪 Almanya Bundesliga",
     takimlar: {
-      "bayern":      { isim: "BAYERN MÜNİH",  renkAna: "#DC052D", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ BAYERN KAZANDI!" },
-      "leverkusen":  { isim: "LEVERKUSEN",    renkAna: "#E32221", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ LEVERKUSEN KAZANDI!" },
-      "dortmund":    { isim: "DORTMUND",      renkAna: "#FDE100", renkIkinci: "#000000", kazandiYazisi: "🟡⚫ DORTMUND KAZANDI!" },
-      "leipzig":     { isim: "RB LEIPZIG",    renkAna: "#DD013F", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ LEIPZIG KAZANDI!" },
-      "stuttgart":   { isim: "STUTTGART",     renkAna: "#E32219", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ STUTTGART KAZANDI!" },
-      "frankfurt":   { isim: "E. FRANKFURT",  renkAna: "#E1000F", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ FRANKFURT KAZANDI!" },
-      "freiburg":    { isim: "FREIBURG",      renkAna: "#C8102E", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ FREIBURG KAZANDI!" },
-      "gladbach":    { isim: "GLADBACH",      renkAna: "#008000", renkIkinci: "#000000", kazandiYazisi: "🟢⚫ GLADBACH KAZANDI!" },
-      "bremen":      { isim: "W. BREMEN",     renkAna: "#1D9053", renkIkinci: "#FFFFFF", kazandiYazisi: "🟢⚪ WERDER KAZANDI!" },
-      "wolfsburg":   { isim: "WOLFSBURG",     renkAna: "#65B32E", renkIkinci: "#FFFFFF", kazandiYazisi: "🟢⚪ WOLFSBURG KAZANDI!" },
-      "augsburg":    { isim: "AUGSBURG",      renkAna: "#BA3733", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ AUGSBURG KAZANDI!" },
-      "mainz":       { isim: "MAINZ 05",      renkAna: "#ED1C24", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ MAINZ KAZANDI!" },
-      "hoffenheim":  { isim: "HOFFENHEIM",    renkAna: "#005CA9", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵⚪ HOFFENHEIM KAZANDI!" },
-      "heidenheim":  { isim: "HEIDENHEIM",    renkAna: "#E2001A", renkIkinci: "#00529F", kazandiYazisi: "🔴🔵 HEIDENHEIM KAZANDI!" },
-      "stpauli":     { isim: "ST. PAULI",     renkAna: "#8E6B52", renkIkinci: "#FFFFFF", kazandiYazisi: "🟤⚪ ST. PAULI KAZANDI!" },
-      "union":       { isim: "UNION BERLIN",  renkAna: "#D4011D", renkIkinci: "#FDE100", kazandiYazisi: "🔴🟡 UNION BERLIN KAZANDI!" }
+      "bayern": { isim: "BAYERN MÜNİH", kisa: "BAY", logo: "./bayern-logo.png", muzik: "bayern-gol.mp3", renkAna: "#DC052D", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ BAYERN KAZANDI!" },
+      "dortmund": { isim: "DORTMUND", kisa: "BVB", logo: "./dortmund-logo.png", muzik: "dortmund-gol.mp3", renkAna: "#FDE100", renkIkinci: "#000000", kazandiYazisi: "🟡⚫ DORTMUND KAZANDI!" },
+      "leverkusen": { isim: "LEVERKUSEN", kisa: "LEV", logo: "./leverkusen-logo.png", muzik: "leverkusen-gol.mp3", renkAna: "#E32221", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ LEVERKUSEN KAZANDI!" }
     }
   },
   "laliga": {
     isim: "🇪🇸 İspanya La Liga",
     takimlar: {
-      "rm":        { isim: "REAL MADRID",    renkAna: "#FFFFFF", renkIkinci: "#00529F", kazandiYazisi: "👑 REAL MADRID KAZANDI!" },
-      "barca":     { isim: "BARCELONA",      renkAna: "#A50044", renkIkinci: "#004D98", kazandiYazisi: "🔵🔴 BARCELONA KAZANDI!" },
-      "atletico":  { isim: "ATLETICO MAD",   renkAna: "#CB3524", renkIkinci: "#272E61", kazandiYazisi: "🔴⚪ ATLETICO KAZANDI!" },
-      "bilbao":    { isim: "ATH. BILBAO",    renkAna: "#EE2523", renkIkinci: "#000000", kazandiYazisi: "🔴⚪ ATH. BILBAO KAZANDI!" },
-      "sociedad":  { isim: "REAL SOCIEDAD",  renkAna: "#0067B1", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵⚪ REAL SOCIEDAD KAZANDI!" },
-      "betis":     { isim: "REAL BETIS",     renkAna: "#078930", renkIkinci: "#FFFFFF", kazandiYazisi: "🟢⚪ REAL BETIS KAZANDI!" },
-      "villarreal":{ isim: "VILLARREAL",     renkAna: "#FCE300", renkIkinci: "#00508F", kazandiYazisi: "🟡🔵 VILLARREAL KAZANDI!" },
-      "sevilla":   { isim: "SEVILLA",        renkAna: "#D11241", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ SEVILLA KAZANDI!" },
-      "valencia":  { isim: "VALENCIA",       renkAna: "#FFFFFF", renkIkinci: "#000000", kazandiYazisi: "🦇 VALENCIA KAZANDI!" },
-      "girona":    { isim: "GIRONA",         renkAna: "#E20613", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ GIRONA KAZANDI!" },
-      "celta":     { isim: "CELTA VIGO",     renkAna: "#8CC6D7", renkIkinci: "#E53027", kazandiYazisi: "🩵 CELTA VIGO KAZANDI!" },
-      "mallorca":  { isim: "MALLORCA",       renkAna: "#E2001A", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ MALLORCA KAZANDI!" },
-      "osasuna":   { isim: "OSASUNA",        renkAna: "#C11D2A", renkIkinci: "#002D57", kazandiYazisi: "🔴🔵 OSASUNA KAZANDI!" },
-      "getafe":    { isim: "GETAFE",         renkAna: "#004F9F", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵 GETAFE KAZANDI!" },
-      "rayo":      { isim: "RAYO VALLECANO", renkAna: "#FFFFFF", renkIkinci: "#E53027", kazandiYazisi: "⚡ RAYO KAZANDI!" },
-      "alaves":    { isim: "ALAVES",         renkAna: "#0050BC", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵⚪ ALAVES KAZANDI!" }
-    }
-  },
-  "ligue1": {
-    isim: "🇫🇷 Fransa Ligue 1",
-    takimlar: {
-      "psg":       { isim: "PSG",            renkAna: "#004170", renkIkinci: "#DA291C", kazandiYazisi: "🔵🔴 PSG KAZANDI!" },
-      "monaco":    { isim: "AS MONACO",      renkAna: "#E2001A", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ MONACO KAZANDI!" },
-      "marseille": { isim: "MARSEILLE",      renkAna: "#00A1DE", renkIkinci: "#FFFFFF", kazandiYazisi: "🔵⚪ MARSEILLE KAZANDI!" },
-      "lille":     { isim: "LILLE OSC",      renkAna: "#E2001A", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ LILLE KAZANDI!" },
-      "lyon":      { isim: "OLYMP. LYON",    renkAna: "#DA291C", renkIkinci: "#005CA9", kazandiYazisi: "🔴🔵 LYON KAZANDI!" },
-      "lens":      { isim: "RC LENS",        renkAna: "#ED1C24", renkIkinci: "#FFD100", kazandiYazisi: "🔴🟡 LENS KAZANDI!" },
-      "nice":      { isim: "OGC NICE",       renkAna: "#ED1C24", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ NICE KAZANDI!" },
-      "rennes":    { isim: "ST. RENNAIS",    renkAna: "#E2001A", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ RENNES KAZANDI!" },
-      "brest":     { isim: "ST. BRESTOIS",   renkAna: "#ED1C24", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ BREST KAZANDI!" },
-      "reims":     { isim: "ST. DE REIMS",   renkAna: "#E2001A", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ REIMS KAZANDI!" }
+      "rm": { isim: "REAL MADRID", kisa: "RMA", logo: "./rm-logo.png", muzik: "rm-gol.mp3", renkAna: "#FFFFFF", renkIkinci: "#00529F", kazandiYazisi: "👑 REAL MADRID KAZANDI!" },
+      "barca": { isim: "BARCELONA", kisa: "BAR", logo: "./barca-logo.png", muzik: "barca-gol.mp3", renkAna: "#A50044", renkIkinci: "#004D98", kazandiYazisi: "🔵🔴 BARCELONA KAZANDI!" },
+      "atletico": { isim: "ATLETICO MAD", kisa: "ATL", logo: "./atletico-logo.png", muzik: "atletico-gol.mp3", renkAna: "#CB3524", renkIkinci: "#272E61", kazandiYazisi: "🔴⚪ ATLETICO KAZANDI!" }
     }
   },
   "ucl": {
-    isim: "🏆 UEFA Şampiyonlar Ligi",
+    isim: "🏆 Şampiyonlar Ligi",
     takimlar: {
-      "rm_ucl":      { isim: "REAL MADRID",   renkAna: "#FFFFFF", renkIkinci: "#00529F", kazandiYazisi: "👑 REAL MADRID KAZANDI!" },
-      "barca_ucl":   { isim: "BARCELONA",     renkAna: "#A50044", renkIkinci: "#004D98", kazandiYazisi: "🔵🔴 BARCELONA KAZANDI!" },
-      "arsenal_ucl": { isim: "ARSENAL",       renkAna: "#EF0107", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ARSENAL KAZANDI!" },
-      "lisbon_ucl":  { isim: "SP. LISBON",    renkAna: "#008000", renkIkinci: "#FFFFFF", kazandiYazisi: "🟢⚪ SPORTING KAZANDI!" },
-      "bayern_ucl":  { isim: "BAYERN MÜNİH", renkAna: "#DC052D", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ BAYERN KAZANDI!" },
-      "atletico_ucl":{ isim: "ATLETICO MAD", renkAna: "#CB3524", renkIkinci: "#272E61", kazandiYazisi: "🔴⚪ ATLETICO KAZANDI!" },
-      "psg_ucl":     { isim: "PSG",           renkAna: "#004170", renkIkinci: "#DA291C", kazandiYazisi: "🔵🔴 PSG KAZANDI!" },
-      "liverpool_ucl":{ isim: "LIVERPOOL",   renkAna: "#C8102E", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴 LIVERPOOL KAZANDI!" }
+      "rm_ucl": { isim: "REAL MADRID", kisa: "RMA", logo: "./rm-logo.png", muzik: "rm-gol.mp3", renkAna: "#FFFFFF", renkIkinci: "#00529F", kazandiYazisi: "👑 REAL MADRID KAZANDI!" },
+      "barca_ucl": { isim: "BARCELONA", kisa: "BAR", logo: "./barca-logo.png", muzik: "barca-gol.mp3", renkAna: "#A50044", renkIkinci: "#004D98", kazandiYazisi: "🔵🔴 BARCELONA KAZANDI!" },
+      "arsenal_ucl": { isim: "ARSENAL", kisa: "ARS", logo: "./arsenal-logo.png", muzik: "arsenal-gol.mp3", renkAna: "#EF0107", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ARSENAL KAZANDI!" },
+      "bayern_ucl": { isim: "BAYERN MÜNİH", kisa: "BAY", logo: "./bayern-logo.png", muzik: "bayern-gol.mp3", renkAna: "#DC052D", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ BAYERN KAZANDI!" },
+      "psg_ucl": { isim: "PSG", kisa: "PSG", logo: "./psg-logo.png", muzik: "psg-gol.mp3", renkAna: "#004170", renkIkinci: "#DA291C", kazandiYazisi: "🔵🔴 PSG KAZANDI!" },
+      "liverpool_ucl": { isim: "LIVERPOOL", kisa: "LIV", logo: "./liverpool-logo.png", muzik: "liverpool-gol.mp3", renkAna: "#C8102E", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴 LIVERPOOL KAZANDI!" }
     }
   }
 };
 
-// ─── STATE ────────────────────────────────────────────
 let currentTeamA, currentTeamB;
 let engine = null, render = null, runner = null, world = null;
-let scoreA = 0, scoreB = 0, ballsLeft = 10;
-let activeBalls = [];
-let gameStarted = false;
+let scoreA = 0, scoreB = 0, ballsLeft = 10, activeBalls = [], gameStarted = false;
 
-// ─── DROPDOWNS ────────────────────────────────────────
+// ─── ARAYÜZ (DROPDOWNS) ───────────────────────────────
 function populateLeagueSelect() {
-  const sel = document.getElementById('league-select');
-  sel.innerHTML = '';
+  const sel = document.getElementById('league-select'); sel.innerHTML = '';
   for (const [key, lig] of Object.entries(LIGLER)) {
-    const opt = document.createElement('option');
-    opt.value = key; opt.text = lig.isim;
-    sel.appendChild(opt);
+    const opt = document.createElement('option'); opt.value = key; opt.text = lig.isim; sel.appendChild(opt);
   }
   updateTeamsDropdown();
 }
 
 function updateTeamsDropdown() {
   const key = document.getElementById('league-select').value;
-  const selA = document.getElementById('team-a-select');
-  const selB = document.getElementById('team-b-select');
-  selA.innerHTML = ''; selB.innerHTML = '';
-  let i = 0;
+  const selA = document.getElementById('team-a-select'), selB = document.getElementById('team-b-select');
+  selA.innerHTML = ''; selB.innerHTML = ''; let i = 0;
   for (const [k, t] of Object.entries(LIGLER[key].takimlar)) {
     const oA = document.createElement('option'); oA.value = k; oA.text = t.isim; if (i===0) oA.selected = true; selA.appendChild(oA);
     const oB = document.createElement('option'); oB.value = k; oB.text = t.isim; if (i===1) oB.selected = true; selB.appendChild(oB);
@@ -637,102 +390,111 @@ function updateTeamsDropdown() {
   }
 }
 
-// ─── SETUP → GAME ─────────────────────────────────────
-function applyTeamsAndShowGame() {
+// ─── GERİ SAYIM VE OTOMATİK BAŞLANGIÇ ──────────────────────────
+function applyTeamsAndStartCountdown() {
+  initAudio(); 
+
   const lig = document.getElementById('league-select').value;
-  const takimlar = LIGLER[lig].takimlar;
-  currentTeamA = takimlar[document.getElementById('team-a-select').value];
-  currentTeamB = takimlar[document.getElementById('team-b-select').value];
+  currentTeamA = LIGLER[lig].takimlar[document.getElementById('team-a-select').value];
+  currentTeamB = LIGLER[lig].takimlar[document.getElementById('team-b-select').value];
 
-  // Skorbord Yazıları (Her zaman BEYAZ kalacak, gölge ile okunabilirlik arttı)
-  const la = document.getElementById('label-a');
-  la.innerText = currentTeamA.isim;
-  la.style.textShadow = `0 0 10px ${currentTeamA.renkAna}`; // Hafif takım rengi parlama
+  // Skorbordda TAM İSİMLERİ yaz (Büyük harf CSS ile yapılıyor)
+  document.getElementById('label-a').innerText = currentTeamA.isim; 
+  document.getElementById('logo-a').src = currentTeamA.logo || '';
+  document.getElementById('logo-wrap-a').style.setProperty('--glow-color', currentTeamA.renkAna);
   
-  // Skorbord Noktaları (Takım Rengi)
-  document.getElementById('dot-a').style.background = currentTeamA.renkAna;
-
-  const lb = document.getElementById('label-b');
-  lb.innerText = currentTeamB.isim;
-  lb.style.textShadow = `0 0 10px ${currentTeamB.renkAna}`;
-  
-  document.getElementById('dot-b').style.background = currentTeamB.renkAna;
+  document.getElementById('label-b').innerText = currentTeamB.isim; 
+  document.getElementById('logo-b').src = currentTeamB.logo || '';
+  document.getElementById('logo-wrap-b').style.setProperty('--glow-color', currentTeamB.renkAna);
 
   document.getElementById('setup-modal').style.display = 'none';
   document.getElementById('scoreboard').style.display = 'flex';
-  document.getElementById('btn-area').style.display = 'block';
-
+  
   initGameEngine();
+
+  const overlay = document.getElementById('countdown-overlay');
+  const text = document.getElementById('countdown-text');
+  overlay.style.display = 'flex';
+  
+  let count = 3;
+  text.innerText = count;
+  text.style.animation = 'none'; void text.offsetWidth; 
+  text.style.animation = 'popIn 1s ease-in-out forwards';
+
+  const timer = setInterval(() => {
+      count--;
+      if (count > 0) {
+          text.innerText = count;
+          text.style.animation = 'none'; void text.offsetWidth;
+          text.style.animation = 'popIn 1s ease-in-out forwards';
+      } else if (count === 0) {
+          text.innerText = "BAŞLA!";
+          text.style.animation = 'none'; void text.offsetWidth;
+          text.style.animation = 'popInFinal 1s ease-in-out forwards';
+      } else {
+          clearInterval(timer);
+          overlay.style.display = 'none';
+          gameStarted = true;
+          dropBall(); 
+      }
+  }, 1000);
 }
 
 function showSetupModal() {
   document.getElementById('game-over').style.display = 'none';
   document.getElementById('scoreboard').style.display = 'none';
-  document.getElementById('btn-area').style.display = 'none';
   document.getElementById('setup-modal').style.display = 'flex';
-
   if (engine) {
-    Matter.Render.stop(render);
-    Matter.Runner.stop(runner);
-    Matter.World.clear(engine.world);
-    Matter.Engine.clear(engine);
-    engine = null; render = null; runner = null; world = null;
+    Matter.Render.stop(render); Matter.Runner.stop(runner);
+    Matter.World.clear(engine.world); Matter.Engine.clear(engine);
+    engine = null;
   }
-
   const ctx = document.getElementById('game-canvas').getContext('2d');
   ctx.clearRect(0, 0, W, H);
 }
 
-// ─── ENGINE ───────────────────────────────────────────
+// ─── OYUN MOTORU ───
 function initGameEngine() {
-  scoreA = 0; scoreB = 0; ballsLeft = 10;
-  gameStarted = false; activeBalls = [];
+  scoreA = 0; scoreB = 0; ballsLeft = 10; gameStarted = false; activeBalls = [];
   document.getElementById('score-a').innerText = '0';
   document.getElementById('score-b').innerText = '0';
   document.getElementById('ball-count').innerText = '10';
 
-  const { Engine, Render, Runner, Events, World } = Matter;
+  engine = Matter.Engine.create({ gravity: { y: 1.6 } }); 
+  world = engine.world;
 
-  engine = Engine.create({ gravity: { y: 1.8 } });
-  world  = engine.world;
-
-  render = Render.create({
-    canvas: document.getElementById('game-canvas'),
-    engine: engine,
+  render = Matter.Render.create({
+    canvas: document.getElementById('game-canvas'), engine: engine,
     options: { width: W, height: H, wireframes: false, background: 'transparent' }
   });
 
-  runner = Runner.create();
-
-  Events.on(render, 'beforeRender', drawFieldBackground);
-  Events.on(render, 'afterRender',  drawForegroundLabels);
+  runner = Matter.Runner.create();
+  Matter.Events.on(render, 'beforeRender', drawFieldBackground);
+  Matter.Events.on(render, 'afterRender', drawForeground);
 
   buildScene();
   setupCollisions();
 
-  Runner.run(runner, engine);
-  Render.run(render);
+  Matter.Runner.run(runner, engine);
+  Matter.Render.run(render);
 }
 
 function buildScene() {
   const { Bodies, World } = Matter;
 
-  // Walls + ground
   World.add(world, [
-    Bodies.rectangle(W/2, H + 10, W, 20, { isStatic: true, render: { fillStyle: 'transparent' }, label: 'ground' }),
-    Bodies.rectangle(-5,  H/2,    10, H,  { isStatic: true, render: { fillStyle: 'transparent' } }),
-    Bodies.rectangle(W+5, H/2,    10, H,  { isStatic: true, render: { fillStyle: 'transparent' } })
+    Bodies.rectangle(W/2, H+50, W, 100, { isStatic: true, render: { fillStyle: 'transparent' }, label: 'ground' }),
+    Bodies.rectangle(-10, H/2, 20, H, { isStatic: true, friction: 0, restitution: 0.8 }), 
+    Bodies.rectangle(W+10, H/2, 20, H, { isStatic: true, friction: 0, restitution: 0.8 })
   ]);
 
-  // Bin dividers
-  const binW = W / 5, binH = 110;
+  const binW = W / 5;
   for (let i = 1; i < 5; i++) {
-    World.add(world, Bodies.rectangle(i * binW, H - binH/2, 4, binH, {
-      isStatic: true, render: { fillStyle: 'rgba(255,255,255,0.6)' }, label: 'divider'
+    World.add(world, Bodies.rectangle(i * binW, H - 55, 4, 110, {
+      isStatic: true, restitution: 0.2, render: { fillStyle: 'rgba(255,255,255,0.7)', lineWidth: 1 }, label: 'divider'
     }));
   }
 
-  // Bin sensors
   const binLabels = ['aut-l', 'goal-a', 'aut-m', 'goal-b', 'aut-r'];
   for (let i = 0; i < 5; i++) {
     World.add(world, Bodies.rectangle((i + 0.5) * binW, H - 8, binW - 6, 16, {
@@ -740,299 +502,251 @@ function buildScene() {
     }));
   }
 
-  // Pegs — 9 rows, 7 cols
-  const rows = 9, cols = 7, pegR = 6.5;
-  const startY = PLINKO_TOP + 60;
-  const endY   = PLINKO_BOTTOM - 20;
-  const stepY  = (endY - startY) / (rows - 1);
-  const stepX  = (W - 60) / (cols - 1);
+  const rows = 9, cols = 7, pegR = 6;
+  const startY = PLINKO_TOP + 40, endY = PLINKO_BOTTOM - 20;
+  const stepY = (endY - startY) / (rows - 1), stepX = (W - 60) / (cols - 1);
 
   for (let r = 0; r < rows; r++) {
-    const isOdd  = r % 2 === 1;
-    const count  = isOdd ? cols - 1 : cols;
-    const offsetX = isOdd ? 30 + stepX / 2 : 30;
-    const y      = startY + r * stepY;
+    const isOdd = r % 2 === 1;
+    const count = isOdd ? cols - 1 : cols;
+    const offsetX = isOdd ? 30 + stepX/2 : 30;
+    const y = startY + r * stepY;
     for (let c = 0; c < count; c++) {
       World.add(world, Bodies.circle(offsetX + c * stepX, y, pegR, {
-        isStatic: true, restitution: 0.5, friction: 0.05,
-        render: { fillStyle: '#ffffff', strokeStyle: 'rgba(255,255,255,0.3)', lineWidth: 1 },
-        label: 'peg'
+        isStatic: true, restitution: 0.6, friction: 0, frictionStatic: 0, 
+        render: { fillStyle: '#fff' }, label: 'peg'
       }));
     }
   }
 }
 
-// ─── COLLISIONS ───────────────────────────────────────
+// ─── ÇARPIŞMALAR VE OTOMATİK DÖNGÜ ──
 function setupCollisions() {
+  
+  Matter.Events.on(engine, 'beforeUpdate', function() {
+      activeBalls.forEach(ball => {
+          if (ball.position.x < 20) {
+              Matter.Body.applyForce(ball, ball.position, { x: 0.005, y: -0.002 });
+          } else if (ball.position.x > W - 20) {
+              Matter.Body.applyForce(ball, ball.position, { x: -0.005, y: -0.002 });
+          }
+          else if (Math.abs(ball.velocity.x) < 0.1 && Math.abs(ball.velocity.y) < 0.1) {
+              Matter.Body.applyForce(ball, ball.position, { x: (Math.random() - 0.5) * 0.003, y: -0.002 });
+          }
+      });
+  });
+
   Matter.Events.on(engine, 'collisionStart', (event) => {
+    let bounced = false; 
+
     event.pairs.forEach(({ bodyA, bodyB }) => {
-      const ball   = bodyA.label === 'ball' ? bodyA : bodyB.label === 'ball' ? bodyB : null;
+      const ball = bodyA.label === 'ball' ? bodyA : bodyB.label === 'ball' ? bodyB : null;
       const sensor = [bodyA, bodyB].find(b => b.label?.startsWith('goal') || b.label?.startsWith('aut'));
-      if (!ball || !sensor || ball.isScored) return;
-
-      ball.isScored = true;
-      const bx = ball.position.x, by = ball.position.y;
-
-      // Kaybolan GOL! yazıları her zaman BEYAZdır, çerçeveleri CSS ile ayarlandı.
-      if (sensor.label === 'goal-a') {
-        scoreA++;
-        updateScoreDisplay('score-a');
-        showFlash(bx, by - 50, 'GOL! ⚽');
-        triggerShake();
-        spawnConfetti(bx, by, currentTeamA.renkAna, currentTeamA.renkIkinci);
-      } else if (sensor.label === 'goal-b') {
-        scoreB++;
-        updateScoreDisplay('score-b');
-        showFlash(bx, by - 50, 'GOL! ⚽');
-        triggerShake();
-        spawnConfetti(bx, by, currentTeamB.renkAna, currentTeamB.renkIkinci);
-      } else {
-        showFlash(bx, by - 50, 'AUT');
+      
+      if (ball && !ball.isScored) {
+          const other = ball === bodyA ? bodyB : bodyA;
+          if (other.label === 'peg' || other.label === 'divider') {
+              bounced = true;
+          }
       }
 
-      setTimeout(() => {
-        Matter.World.remove(world, ball);
-        activeBalls = activeBalls.filter(b => b !== ball);
-        if (ballsLeft > 0) {
-          setTimeout(dropBall, 600);
+      if (ball && sensor && !ball.isScored) {
+        ball.isScored = true;
+        const bx = ball.position.x, by = ball.position.y;
+
+        if (sensor.label === 'goal-a') {
+          scoreA++; updateScore('score-a'); 
+          showFlash(bx, by - 60, 'GOL! ⚽'); triggerShake(); 
+          spawnConfetti(bx, by, currentTeamA.renkAna, currentTeamA.renkIkinci);
+          playGoalSound(currentTeamA.muzik); 
+        } else if (sensor.label === 'goal-b') {
+          scoreB++; updateScore('score-b'); 
+          showFlash(bx, by - 60, 'GOL! ⚽'); triggerShake(); 
+          spawnConfetti(bx, by, currentTeamB.renkAna, currentTeamB.renkIkinci);
+          playGoalSound(currentTeamB.muzik); 
         } else {
-          setTimeout(checkGameOver, 1800);
+          showFlash(bx, by - 60, 'AUT ❌');
         }
-      }, 300);
+
+        setTimeout(() => {
+          Matter.World.remove(world, ball);
+          activeBalls = activeBalls.filter(b => b !== ball);
+          
+          if (ballsLeft > 0) {
+             setTimeout(dropBall, 600); 
+          } else {
+             setTimeout(checkGameOver, 1500);
+          }
+        }, 300);
+      }
     });
+
+    if(bounced) playBounceSound(); 
   });
 }
 
-// ─── MATCH FLOW ───────────────────────────────────────
-function startAutoMatch() {
-  if (gameStarted) return;
-  gameStarted = true;
-  document.getElementById('btn-area').style.display = 'none';
-  dropBall();
-}
-
+// ─── OTOMATİK TOP ATICI ───────────────────────────────────────
 function dropBall() {
   if (ballsLeft <= 0) return;
-  const { Bodies, Body, World } = Matter;
-  const x = W / 2 + (Math.random() - 0.5) * 130;
-  const ball = Bodies.circle(x, PLINKO_TOP, 12, {
-    restitution: 0.65, friction: 0.01, frictionAir: 0.015, density: 0.005,
-    render: {
-      fillStyle: '#FFD700',
-      strokeStyle: 'rgba(255,255,255,0.8)',
-      lineWidth: 2
-    },
-    label: 'ball'
+  const dropX = (W / 2) + (Math.random() - 0.5) * (W * 0.6); 
+  const ball = Matter.Bodies.circle(dropX, PLINKO_TOP - 20, 14, {
+    restitution: 0.75, friction: 0, frictionAir: 0.015, density: 0.005,
+    render: { fillStyle: 'transparent', strokeStyle: 'transparent' }, label: 'ball'
   });
-  Body.setVelocity(ball, { x: (Math.random() - 0.5) * 3, y: 2 });
-  World.add(world, ball);
+
+  Matter.Body.setVelocity(ball, { x: (Math.random() - 0.5) * 2, y: 1 });
+  Matter.World.add(world, ball);
   activeBalls.push(ball);
+
   ballsLeft--;
   document.getElementById('ball-count').textContent = ballsLeft;
 }
 
-// ─── UI UPDATES ───────────────────────────────────────
-function updateScoreDisplay(elemId) {
-  document.getElementById('score-a').textContent = scoreA;
-  document.getElementById('score-b').textContent = scoreB;
+// ─── UI EFEKTLERİ ─────────────────────────────────────
+function updateScore(elemId) {
+  document.getElementById('score-a').textContent = scoreA; document.getElementById('score-b').textContent = scoreB;
   const el = document.getElementById(elemId);
-  el.classList.add('score-bump');
-  setTimeout(() => el.classList.remove('score-bump'), 250);
+  el.classList.add('score-bump'); setTimeout(() => el.classList.remove('score-bump'), 200);
 }
 
 function showFlash(x, y, text) {
-  const el = document.createElement('div');
-  el.className = 'score-flash';
-  el.textContent = text;
-  el.style.left  = (x - 40) + 'px';
-  el.style.top   = y + 'px';
-  el.style.minWidth = '80px';
-  document.getElementById('ui-layer').appendChild(el);
-  setTimeout(() => el.remove(), 1200);
+  const el = document.createElement('div'); el.className = 'score-flash'; el.textContent = text;
+  el.style.left = (x - 60) + 'px'; el.style.top = y + 'px'; el.style.width = '120px';
+  document.getElementById('ui-layer').appendChild(el); setTimeout(() => el.remove(), 1200);
 }
 
 function triggerShake() {
-  const wrapper = document.getElementById('game-wrapper');
-  wrapper.classList.remove('shake');
-  void wrapper.offsetWidth;
-  wrapper.classList.add('shake');
-  wrapper.addEventListener('animationend', () => wrapper.classList.remove('shake'), { once: true });
+  const wrap = document.getElementById('game-wrapper'); wrap.classList.remove('shake');
+  void wrap.offsetWidth; wrap.classList.add('shake');
 }
 
 function spawnConfetti(x, y, c1, c2) {
-  const { Bodies, Body, World } = Matter;
-  for (let i = 0; i < 22; i++) {
-    const p = Bodies.circle(x, y, Math.random() * 3 + 2, {
-      restitution: 0.8, frictionAir: 0.04,
-      render: { fillStyle: Math.random() > 0.5 ? c1 : c2 },
-      collisionFilter: { group: -1 }
+  for (let i = 0; i < 25; i++) {
+    const p = Matter.Bodies.circle(x, y, Math.random() * 3 + 2, {
+      restitution: 0.8, frictionAir: 0.03, render: { fillStyle: Math.random() > 0.5 ? c1 : c2 }, collisionFilter: { group: -1 }
     });
-    Body.setVelocity(p, { x: (Math.random() - 0.5) * 16, y: -Math.random() * 14 - 4 });
-    World.add(world, p);
-    setTimeout(() => World.remove(world, p), 2000);
+    Matter.Body.setVelocity(p, { x: (Math.random() - 0.5) * 18, y: -Math.random() * 15 - 5 });
+    Matter.World.add(world, p); setTimeout(() => Matter.World.remove(world, p), 2000);
   }
 }
 
 function checkGameOver() {
-  const goScoreA = document.getElementById('go-score-a');
-  const goScoreB = document.getElementById('go-score-b');
-  const goLabelA = document.getElementById('go-label-a');
-  const goLabelB = document.getElementById('go-label-b');
-  goLabelA.textContent = currentTeamA.isim;
-  goLabelB.textContent = currentTeamB.isim;
-  goScoreA.textContent = scoreA;
-  goScoreB.textContent = scoreB;
-  goScoreA.classList.remove('winner');
-  goScoreB.classList.remove('winner');
+  // Bitiş ekranında da TAM İSİMLERİ göster
+  document.getElementById('go-label-a').textContent = currentTeamA.isim;
+  document.getElementById('go-label-b').textContent = currentTeamB.isim;
+  document.getElementById('go-score-a').textContent = scoreA;
+  document.getElementById('go-score-b').textContent = scoreB;
+  
+  const sA = document.getElementById('go-score-a'), sB = document.getElementById('go-score-b');
+  sA.classList.remove('winner'); sB.classList.remove('winner');
 
-  let result = '';
-  if (scoreA > scoreB) {
-    result = currentTeamA.kazandiYazisi;
-    goScoreA.classList.add('winner');
-  } else if (scoreB > scoreA) {
-    result = currentTeamB.kazandiYazisi;
-    goScoreB.classList.add('winner');
-  } else {
-    result = `🤝 BERABERE!`;
-  }
+  let res = '';
+  if (scoreA > scoreB) { res = currentTeamA.kazandiYazisi; sA.classList.add('winner'); }
+  else if (scoreB > scoreA) { res = currentTeamB.kazandiYazisi; sB.classList.add('winner'); }
+  else { res = `🤝 BERABERE!`; }
 
-  document.getElementById('result-text').textContent = result;
+  document.getElementById('result-text').textContent = res;
   document.getElementById('game-over').style.display = 'block';
 }
 
-// ─── CANVAS DRAWING ───────────────────────────────────
+// ─── ÇİZİMLER ─────────────────────────────
 function drawFieldBackground() {
-  const ctx = render.context;
-  if (!ctx) return;
-  ctx.save();
+  const ctx = render.context; if (!ctx) return;
+  ctx.save(); ctx.clearRect(0, 0, W, H);
 
-  // Field gradient
   const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0,   '#0d2a0d');
-  grad.addColorStop(0.5, '#1a4a1a');
-  grad.addColorStop(1,   '#0d2a0d');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+  grad.addColorStop(0, '#061709'); grad.addColorStop(0.5, '#0d3615'); grad.addColorStop(1, '#061709');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
 
-  // Grass stripes
-  ctx.fillStyle = 'rgba(0,0,0,0.07)';
-  for (let y = PLINKO_TOP; y < PLINKO_BOTTOM; y += 80) {
-    ctx.fillRect(0, y, W, 40);
-  }
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  for (let y = PLINKO_TOP; y < H; y += 60) ctx.fillRect(0, y, W, 30);
 
-  // Center dashed line
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([10, 10]);
-  ctx.beginPath();
-  ctx.moveTo(W / 2, PLINKO_TOP + 10);
-  ctx.lineTo(W / 2, PLINKO_BOTTOM - 10);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(W/2, H/2 + 30, 70, 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([10, 10]); ctx.beginPath(); ctx.moveTo(W/2, PLINKO_TOP); ctx.lineTo(W/2, PLINKO_BOTTOM); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(W/2, PLINKO_BOTTOM, 90, Math.PI, 0); ctx.stroke();
 
-  // ── Bins ─────────────────────────────────────────────
-  const binW  = W / 5;
-  const binTop = H - 110;
+  const binTop = PLINKO_BOTTOM;
+  const binW = W / 5;
+  
+  ctx.fillStyle = 'rgba(20,20,20,0.85)';
+  ctx.fillRect(0, binTop, binW, 110); 
+  ctx.fillRect(binW*2, binTop, binW, 110); 
+  ctx.fillRect(binW*4, binTop, binW, 110);
 
-  // Dark border top of bins
-  ctx.fillStyle = 'rgba(255,255,255,0.07)';
-  ctx.fillRect(0, binTop, W, 2);
+  const gA = ctx.createLinearGradient(binW, binTop, binW*2, binTop);
+  gA.addColorStop(0, currentTeamA.renkAna); gA.addColorStop(1, currentTeamA.renkIkinci);
+  ctx.fillStyle = gA; ctx.fillRect(binW, binTop, binW, 110);
 
-  // AUT bins: left, center, right
-  const autGrad = ctx.createLinearGradient(0, binTop, 0, H);
-  autGrad.addColorStop(0, 'rgba(40,40,40,0.92)');
-  autGrad.addColorStop(1, 'rgba(20,20,20,0.98)');
-  ctx.fillStyle = autGrad;
-  ctx.fillRect(0,          binTop, binW,     110);
-  ctx.fillRect(binW * 2,   binTop, binW,     110);
-  ctx.fillRect(binW * 4,   binTop, binW,     110);
+  const gB = ctx.createLinearGradient(binW*3, binTop, binW*4, binTop);
+  gB.addColorStop(0, currentTeamB.renkAna); gB.addColorStop(1, currentTeamB.renkIkinci);
+  ctx.fillStyle = gB; ctx.fillRect(binW*3, binTop, binW, 110);
 
-  // Team A bin
-  const gA = ctx.createLinearGradient(binW, binTop, binW * 2, binTop);
-  gA.addColorStop(0, currentTeamA.renkAna);
-  gA.addColorStop(1, currentTeamA.renkIkinci);
-  ctx.fillStyle = gA;
-  ctx.fillRect(binW, binTop, binW, 110);
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(binW, binTop, binW, 30);
-
-  // Team B bin
-  const gB = ctx.createLinearGradient(binW * 3, binTop, binW * 4, binTop);
-  gB.addColorStop(0, currentTeamB.renkAna);
-  gB.addColorStop(1, currentTeamB.renkIkinci);
-  ctx.fillStyle = gB;
-  ctx.fillRect(binW * 3, binTop, binW, 110);
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(binW * 3, binTop, binW, 30);
-
-  // Scoreboard area background
-  ctx.fillStyle = 'rgba(0,0,0,0)';
-  ctx.fillRect(0, 0, W, PLINKO_TOP);
-
+  ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillRect(0, 0, W, PLINKO_TOP);
   ctx.restore();
 }
 
-function drawForegroundLabels() {
-  const ctx = render.context;
-  if (!ctx) return;
+function drawForeground() {
+  const ctx = render.context; if (!ctx) return;
   ctx.save();
-
-  const binW   = W / 5;
-  const binTop = H - 110;
-
-  ctx.textAlign = 'center';
-
-  function splitName(name, maxLen) {
-    if (name.length <= maxLen) return [name];
-    const mid = Math.floor(name.length / 2);
-    const sp  = name.lastIndexOf(' ', mid) !== -1 ? name.lastIndexOf(' ', mid) : mid;
-    return [name.slice(0, sp).trim(), name.slice(sp).trim()];
-  }
-
-  // AUT labels (Arka planda kalır, normal çizilir)
-  ctx.font = 'bold 13px Rajdhani, Arial';
-  ctx.fillStyle = 'rgba(180,180,180,0.7)';
-  [[0.5, 'AUT'], [2.5, 'AUT'], [4.5, 'AUT']].forEach(([slot, txt]) => {
-    ctx.fillText(txt, slot * binW, binTop + 48);
+  
+  const pegs = Matter.Composite.allBodies(world).filter(b => b.label === 'peg');
+  pegs.forEach(p => {
+     ctx.beginPath(); ctx.arc(p.position.x, p.position.y, 10, 0, Math.PI*2);
+     ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fill(); 
   });
 
-  // Takım Yazılarını Her Türlü Renk Üzerinde Okunabilir Yapma Fonksiyonu
-  function drawOutlinedText(text, x, y) {
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(0,0,0,0.9)'; // Siyah kalın dış çerçeve
-      ctx.strokeText(text, x, y);
-      ctx.fillStyle = '#ffffff'; // İçerisi her zaman tam beyaz
-      ctx.fillText(text, x, y);
-  }
+  const binTop = PLINKO_BOTTOM;
+  const binW = W / 5;
 
-  // Team A label
-  const linesA   = splitName(currentTeamA.isim, 8);
-  ctx.font       = 'bold 13px Rajdhani, Arial';
-  if (linesA.length === 2) {
-    drawOutlinedText(linesA[0], 1.5 * binW, binTop + 38);
-    drawOutlinedText(linesA[1], 1.5 * binW, binTop + 51);
-  } else {
-    drawOutlinedText(linesA[0], 1.5 * binW, binTop + 44);
-  }
-  ctx.font = '24px serif';
-  ctx.fillText('🥅', 1.5 * binW, binTop + 85); // Emojilere gölge gerekmez
+  ctx.font = '800 14px "Rajdhani"'; ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.textAlign = 'center';
+  ctx.fillText('AUT', binW*0.5, binTop + 55); 
+  ctx.fillText('AUT', binW*2.5, binTop + 55); 
+  ctx.fillText('AUT', binW*4.5, binTop + 55);
 
-  // Team B label
-  const linesB   = splitName(currentTeamB.isim, 8);
-  ctx.font       = 'bold 13px Rajdhani, Arial';
-  if (linesB.length === 2) {
-    drawOutlinedText(linesB[0], 3.5 * binW, binTop + 38);
-    drawOutlinedText(linesB[1], 3.5 * binW, binTop + 51);
-  } else {
-    drawOutlinedText(linesB[0], 3.5 * binW, binTop + 44);
-  }
-  ctx.font = '24px serif';
-  ctx.fillText('🥅', 3.5 * binW, binTop + 85);
+  ctx.font = '900 24px "Bebas Neue"';
+  
+  // Saha içindeki kalede kısaltmalar kalabilir (sığması için)
+  ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.strokeText(currentTeamA.kisa, binW*1.5, binTop + 45);
+  ctx.fillStyle = '#fff'; ctx.fillText(currentTeamA.kisa, binW*1.5, binTop + 45);
+  ctx.font = '24px serif'; ctx.fillText('🥅', binW*1.5, binTop + 80);
+
+  ctx.font = '900 24px "Bebas Neue"';
+  ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.strokeText(currentTeamB.kisa, binW*3.5, binTop + 45);
+  ctx.fillStyle = '#fff'; ctx.fillText(currentTeamB.kisa, binW*3.5, binTop + 45);
+  ctx.font = '24px serif'; ctx.fillText('🥅', binW*3.5, binTop + 80);
+
+  activeBalls.forEach(ball => {
+      ctx.save();
+      ctx.translate(ball.position.x, ball.position.y); ctx.rotate(ball.angle);
+      const r = ball.circleRadius; 
+
+      ctx.shadowColor = 'rgba(255,255,255,0.8)'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, 2 * Math.PI);
+      ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.5; ctx.strokeStyle = '#000'; ctx.stroke();
+
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+          const angle = i * 2 * Math.PI / 5 - Math.PI / 2;
+          const px = Math.cos(angle) * (r * 0.4); const py = Math.sin(angle) * (r * 0.4);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath(); ctx.fillStyle = '#111'; ctx.fill();
+
+      for (let i = 0; i < 5; i++) {
+          const angle = i * 2 * Math.PI / 5 - Math.PI / 2;
+          const px1 = Math.cos(angle) * (r * 0.4); const py1 = Math.sin(angle) * (r * 0.4);
+          const px2 = Math.cos(angle) * r; const py2 = Math.sin(angle) * r;
+          ctx.beginPath(); ctx.moveTo(px1, py1); ctx.lineTo(px2, py2); ctx.stroke();
+      }
+      ctx.restore();
+  });
 
   ctx.restore();
 }
 
-// ─── BOOT ─────────────────────────────────────────────
 populateLeagueSelect();
 </script>
 </body>
