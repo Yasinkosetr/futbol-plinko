@@ -19,8 +19,7 @@
   html, body {
     width: 100%; height: 100%;
     background: #020602;
-    display: flex; justify-content: center; 
-    align-items: flex-start; /* Oyunu ortalamak yerine en yukarı yaslar */
+    display: flex; justify-content: center; align-items: flex-start;
     font-family: 'Rajdhani', sans-serif;
     overflow: hidden;
     touch-action: none;
@@ -29,9 +28,8 @@
   #game-wrapper {
     position: relative;
     width: 400px; height: 700px;
-    /* Çentik (Notch) mesafesini otomatik alır, çentik yoksa minimum 10px boşluk bırakır */
     margin-top: max(env(safe-area-inset-top), 10px); 
-    transform-origin: top center; /* Ekran küçükse üstten aşağıya doğru küçülür */
+    transform-origin: top center;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 0 2px rgba(255,255,255,0.05);
@@ -92,9 +90,14 @@
   .center-block { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
   .score-display { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   
-  .score-num { font-family: 'Bebas Neue', sans-serif; font-size: 50px; color: #fff; line-height: 1; transition: transform 0.15s; }
-  .score-num-a { color: var(--gold); text-shadow: 0 0 20px rgba(255,215,0,0.6); }
-  .score-num-b { color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.4); }
+  /* Skor Rakamları - Koyu renklerde okunabilmesi için ince beyaz hat eklendi */
+  .score-num { 
+      font-family: 'Bebas Neue', sans-serif; 
+      font-size: 50px; 
+      line-height: 1; 
+      transition: transform 0.15s; 
+      -webkit-text-stroke: 1px rgba(255,255,255,0.6); 
+  }
   .score-colon { font-family: 'Bebas Neue', sans-serif; font-size: 35px; color: #555; padding-bottom: 5px; }
   .score-bump { transform: scale(1.4) !important; }
 
@@ -223,9 +226,9 @@
       
       <div class="center-block">
         <div class="score-display">
-            <div class="score-num score-num-a" id="score-a">0</div>
+            <div class="score-num" id="score-a">0</div>
             <div class="score-colon">:</div>
-            <div class="score-num score-num-b" id="score-b">0</div>
+            <div class="score-num" id="score-b">0</div>
         </div>
         <div class="ball-timer"><div class="dot"></div> <span id="ball-count">10</span>&nbsp;TOP</div>
       </div>
@@ -530,17 +533,24 @@ function applyTeamsAndStartCountdown() {
   currentTeamA = LIGLER[lig].takimlar[document.getElementById('team-a-select').value];
   currentTeamB = LIGLER[lig].takimlar[document.getElementById('team-b-select').value];
 
-  // SES KİLİDİ BURADA KIRILIYOR (currentTeamA atandıktan sonra)
   initAudio(); 
 
-  // Skorbordda TAM İSİMLERİ yaz
   document.getElementById('label-a').innerText = currentTeamA.isim; 
   document.getElementById('logo-a').src = currentTeamA.logo || '';
   document.getElementById('logo-wrap-a').style.setProperty('--glow-color', currentTeamA.renkAna);
   
+  // Skor renklerini İKİNCİ RENK olarak ayarla (JS üzerinden dinamik)
+  const scoreA_el = document.getElementById('score-a');
+  scoreA_el.style.color = currentTeamA.renkIkinci;
+  scoreA_el.style.textShadow = `0 0 15px ${currentTeamA.renkIkinci}`;
+  
   document.getElementById('label-b').innerText = currentTeamB.isim; 
   document.getElementById('logo-b').src = currentTeamB.logo || '';
   document.getElementById('logo-wrap-b').style.setProperty('--glow-color', currentTeamB.renkAna);
+
+  const scoreB_el = document.getElementById('score-b');
+  scoreB_el.style.color = currentTeamB.renkIkinci;
+  scoreB_el.style.textShadow = `0 0 15px ${currentTeamB.renkIkinci}`;
 
   document.getElementById('setup-modal').style.display = 'none';
   document.getElementById('scoreboard').style.display = 'flex';
