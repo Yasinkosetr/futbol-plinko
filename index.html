@@ -90,7 +90,6 @@
   .center-block { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
   .score-display { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   
-  /* Skor Rakamları - Koyu renklerde okunabilmesi için ince beyaz hat eklendi */
   .score-num { 
       font-family: 'Bebas Neue', sans-serif; 
       font-size: 50px; 
@@ -377,7 +376,7 @@ const LIGLER = {
     }
   },
   "premierlig": {
-    isim: " İngiltere Premier Lig",
+    isim: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 İngiltere Premier Lig",
     takimlar: {
       "mcity": { isim: "MANCHESTER CITY", kisa: "MCI", logo: "./mcity-logo.png", muzik: "mcity-gol.mp3", renkAna: "#6CABDD", renkIkinci: "#1C2C5B", kazandiYazisi: "🩵 MANCHESTER CITY KAZANDI!" },
       "arsenal": { isim: "ARSENAL", kisa: "ARS", logo: "./arsenal-logo.png", muzik: "arsenal-gol.mp3", renkAna: "#EF0107", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ARSENAL KAZANDI!" },
@@ -539,7 +538,6 @@ function applyTeamsAndStartCountdown() {
   document.getElementById('logo-a').src = currentTeamA.logo || '';
   document.getElementById('logo-wrap-a').style.setProperty('--glow-color', currentTeamA.renkAna);
   
-  // Skor renklerini İKİNCİ RENK olarak ayarla (JS üzerinden dinamik)
   const scoreA_el = document.getElementById('score-a');
   scoreA_el.style.color = currentTeamA.renkIkinci;
   scoreA_el.style.textShadow = `0 0 15px ${currentTeamA.renkIkinci}`;
@@ -598,7 +596,7 @@ function showSetupModal() {
   ctx.clearRect(0, 0, W, H);
 }
 
-// ─── OYUN MOTORU ───
+// ─── OYUN MOTORU VE KÖKTEN ÇÖZÜLMÜŞ MARJLAR ───
 function initGameEngine() {
   scoreA = 0; scoreB = 0; ballsLeft = 10; gameStarted = false; activeBalls = [];
   document.getElementById('score-a').innerText = '0';
@@ -647,14 +645,16 @@ function buildScene() {
     }));
   }
 
+  // SIKIŞMAYI KÖKTEN ÇÖZEN MARJ AYARI (30'dan 45'e çıkarıldı)
+  const marginX = 45; 
   const rows = 9, cols = 7, pegR = 6;
   const startY = PLINKO_TOP + 40, endY = PLINKO_BOTTOM - 20;
-  const stepY = (endY - startY) / (rows - 1), stepX = (W - 60) / (cols - 1);
+  const stepY = (endY - startY) / (rows - 1), stepX = (W - marginX * 2) / (cols - 1);
 
   for (let r = 0; r < rows; r++) {
     const isOdd = r % 2 === 1;
     const count = isOdd ? cols - 1 : cols;
-    const offsetX = isOdd ? 30 + stepX/2 : 30;
+    const offsetX = isOdd ? marginX + stepX/2 : marginX;
     const y = startY + r * stepY;
     for (let c = 0; c < count; c++) {
       World.add(world, Bodies.circle(offsetX + c * stepX, y, pegR, {
@@ -665,16 +665,18 @@ function buildScene() {
   }
 }
 
-// ─── ÇARPIŞMALAR VE OTOMATİK DÖNGÜ ──
+// ─── ÇARPIŞMALAR VE KENAR İTİCİ RÜZGAR ──
 function setupCollisions() {
   
   Matter.Events.on(engine, 'beforeUpdate', function() {
       activeBalls.forEach(ball => {
-          if (ball.position.x < 20) {
-              Matter.Body.applyForce(ball, ball.position, { x: 0.005, y: -0.002 });
-          } else if (ball.position.x > W - 20) {
-              Matter.Body.applyForce(ball, ball.position, { x: -0.005, y: -0.002 });
+          // Kenar duvarlardan güçlü görünmez rüzgar (Sıkışmayı imkansız kılar)
+          if (ball.position.x < 35) {
+              Matter.Body.applyForce(ball, ball.position, { x: 0.003, y: 0 });
+          } else if (ball.position.x > W - 35) {
+              Matter.Body.applyForce(ball, ball.position, { x: -0.003, y: 0 });
           }
+          // Çivi üzerinde tamamen durma ihtimaline karşı mikro titreme
           else if (Math.abs(ball.velocity.x) < 0.1 && Math.abs(ball.velocity.y) < 0.1) {
               Matter.Body.applyForce(ball, ball.position, { x: (Math.random() - 0.5) * 0.003, y: -0.002 });
           }
@@ -730,10 +732,14 @@ function setupCollisions() {
   });
 }
 
-// ─── OTOMATİK TOP ATICI ───────────────────────────────────────
+// ─── OTOMATİK TOP ATICI (TAM EŞİT DAĞILIM) ───────────────────────────────────────
 function dropBall() {
   if (ballsLeft <= 0) return;
+  
+  // Eskiden (W * 0.6) olan atış alanı (W - 80) olarak tüm sahaya yayıldı
+  // Top artık en soldan en sağa kadar tam eşit ihtimalle atılacak
   const dropX = 40 + Math.random() * (W - 80); 
+  
   const ball = Matter.Bodies.circle(dropX, PLINKO_TOP - 20, 14, {
     restitution: 0.75, friction: 0, frictionAir: 0.015, density: 0.005,
     render: { fillStyle: 'transparent', strokeStyle: 'transparent' }, label: 'ball'
