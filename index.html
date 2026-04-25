@@ -71,18 +71,11 @@
   }
   @keyframes spinGlow { 100% { transform: rotate(360deg); } }
 
-  .team-logo { 
-      width: 60px; height: 60px; 
-      object-fit: contain; z-index: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,1)); 
-  }
+  .team-logo { width: 60px; height: 60px; object-fit: contain; z-index: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,1)); }
   
   .team-name { 
-      font-family: 'Bebas Neue', sans-serif; 
-      font-size: 18px; 
-      color: #ffffff; 
-      letter-spacing: 1px; 
-      text-transform: uppercase; 
-      white-space: nowrap;
+      font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #ffffff; 
+      letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
       text-shadow: 0 0 5px rgba(255,255,255,0.5);
       width: 100%; text-align: center; overflow: hidden; text-overflow: ellipsis; 
   }
@@ -256,21 +249,57 @@
   </div>
 </div>
 
-<audio id="audio-goal" src=""></audio>
-
 <script>
 const W = 400, H = 700;
 const PLINKO_TOP = 140; 
 const PLINKO_BOTTOM = H - 110; 
 
-// ─── SES SİSTEMİ (Tamamen Düm Düz) ──────────────────────
-let audioCtx;
+// ─── GÜÇLÜ YENİ SES SİSTEMİ (WEB AUDIO API) ──────────────────────
+// HTML'deki <audio> etiketi tamamen silindi! Tüm sesler direkt hafızaya alınıp çalınacak.
+let audioCtx = null;
+let bufferA = null;
+let bufferB = null;
+let currentGoalSource = null;
+
 function initAudio() {
-    if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-    // Başlangıçta çalma veya kandırma kodları tamamen kaldırıldı!
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
+    // Mobil tarayıcı kilidini açmak için 0.1 saniyelik görünmez/duyulmaz bir sinyal yolluyoruz.
+    // Tıkladığın an çalıştığı için mobil cihaz "ses sistemini" güvenli kabul ediyor.
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0; // Ses %0
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(0);
+    osc.stop(audioCtx.currentTime + 0.1);
 }
 
+// Seçilen takımların müziklerini arka planda indirip hafızaya (RAM) alır
+async function loadTeamAudio(urlA, urlB) {
+    bufferA = null; bufferB = null;
+    if (urlA) {
+        fetch(urlA)
+            .then(res => res.arrayBuffer())
+            .then(data => audioCtx.decodeAudioData(data))
+            .then(decoded => bufferA = decoded)
+            .catch(err => console.log("A Takımı müziği bulunamadı veya yüklenemedi:", err));
+    }
+    if (urlB) {
+        fetch(urlB)
+            .then(res => res.arrayBuffer())
+            .then(data => audioCtx.decodeAudioData(data))
+            .then(decoded => bufferB = decoded)
+            .catch(err => console.log("B Takımı müziği bulunamadı veya yüklenemedi:", err));
+    }
+}
+
+// Topun sekme sesi
 function playBounceSound() {
     if (!audioCtx) return;
     const osc = audioCtx.createOscillator();
@@ -287,20 +316,28 @@ function playBounceSound() {
     osc.start(); osc.stop(audioCtx.currentTime + 0.05);
 }
 
-let goalTimeout;
-function playGoalSound(musicFile) {
-    const audioEl = document.getElementById('audio-goal');
-    if (musicFile) {
-        audioEl.src = musicFile;
-        audioEl.currentTime = 0; 
-        audioEl.volume = 1; 
-        audioEl.play().catch(e => console.log("Otomatik ses engellendi veya dosya bulunamadı:", e));
-        
-        clearTimeout(goalTimeout);
-        goalTimeout = setTimeout(() => {
-            audioEl.pause();
-        }, 3000); 
+// Gol olduğunda çalınacak direkt hafıza sesi
+function playGoalSound(team) {
+    if (!audioCtx) return;
+    
+    const buffer = (team === 'A') ? bufferA : bufferB;
+    if (!buffer) return;
+
+    // Eğer üst üste gol olursa eski müziği sustur
+    if (currentGoalSource) {
+        try { currentGoalSource.stop(); } catch(e){}
     }
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+    source.start(0);
+    currentGoalSource = source;
+
+    // Tam 3 saniye sonra müziği kes
+    setTimeout(() => {
+        try { source.stop(); } catch(e){}
+    }, 3000); 
 }
 
 // ─── LİG VERİTABANI ───────────────────────────
@@ -510,8 +547,8 @@ function applyTeamsAndStartCountdown() {
   currentTeamA = LIGLER[lig].takimlar[document.getElementById('team-a-select').value];
   currentTeamB = LIGLER[lig].takimlar[document.getElementById('team-b-select').value];
 
-  // Sadece context başlatıyoruz, kandırma kodları YOK
   initAudio(); 
+  loadTeamAudio(currentTeamA.muzik, currentTeamB.muzik);
 
   document.getElementById('label-a').innerText = currentTeamA.isim; 
   document.getElementById('logo-a').src = currentTeamA.logo || '';
@@ -643,7 +680,7 @@ function buildScene() {
   }
 }
 
-// ─── ÇARPIŞMALAR VE KENAR İTİCİ RÜZGAR ──
+// ─── ÇARPIŞMALAR ──
 function setupCollisions() {
   
   Matter.Events.on(engine, 'beforeUpdate', function() {
@@ -681,12 +718,12 @@ function setupCollisions() {
           scoreA++; updateScore('score-a'); 
           showFlash(bx, by - 60, 'GOL! ⚽'); 
           spawnConfetti(bx, by, currentTeamA.renkAna, currentTeamA.renkIkinci);
-          playGoalSound(currentTeamA.muzik); 
+          playGoalSound('A'); // Web Audio API tetiklenir
         } else if (sensor.label === 'goal-b') {
           scoreB++; updateScore('score-b'); 
           showFlash(bx, by - 60, 'GOL! ⚽'); 
           spawnConfetti(bx, by, currentTeamB.renkAna, currentTeamB.renkIkinci);
-          playGoalSound(currentTeamB.muzik); 
+          playGoalSound('B'); // Web Audio API tetiklenir
         } else {
           showFlash(bx, by - 60, 'AUT ❌');
         }
@@ -708,7 +745,7 @@ function setupCollisions() {
   });
 }
 
-// ─── OTOMATİK TOP ATICI (TAM EŞİT DAĞILIM) ───────────────────────────────────────
+// ─── OTOMATİK TOP ATICI ───────────────────────────────────────
 function dropBall() {
   if (ballsLeft <= 0) return;
   
