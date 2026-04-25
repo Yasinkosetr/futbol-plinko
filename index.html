@@ -90,13 +90,7 @@
   .center-block { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
   .score-display { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   
-  .score-num { 
-      font-family: 'Bebas Neue', sans-serif; 
-      font-size: 50px; 
-      line-height: 1; 
-      transition: transform 0.15s; 
-      -webkit-text-stroke: 1px rgba(255,255,255,0.6); 
-  }
+  .score-num { font-family: 'Bebas Neue', sans-serif; font-size: 50px; line-height: 1; transition: transform 0.15s; -webkit-text-stroke: 1px rgba(255,255,255,0.6); }
   .score-colon { font-family: 'Bebas Neue', sans-serif; font-size: 35px; color: #555; padding-bottom: 5px; }
   .score-bump { transform: scale(1.4) !important; }
 
@@ -269,14 +263,16 @@ const W = 400, H = 700;
 const PLINKO_TOP = 140; 
 const PLINKO_BOTTOM = H - 110; 
 
-// ─── SES SİSTEMİ VE MOBİL KİLİT KIRICI (WAKELOCK) ──────────────────────
+// ─── SES SİSTEMİ VE MOBİL KİLİT KIRICI (DÜZELTİLDİ) ──────────────────────
 let audioCtx;
 function initAudio() {
     if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     if (audioCtx.state === 'suspended') { audioCtx.resume(); }
 
     const audioEl = document.getElementById('audio-goal');
-    audioEl.muted = true; 
+    
+    // Muted yerine Volume=0 kullanıyoruz ki baştaki 1 saniyelik kaçak ses tamamen yok olsun!
+    audioEl.volume = 0; 
     
     if(currentTeamA && currentTeamA.muzik) {
         audioEl.src = currentTeamA.muzik; 
@@ -287,7 +283,7 @@ function initAudio() {
         playPromise.then(() => {
             audioEl.pause(); 
             audioEl.currentTime = 0; 
-            audioEl.muted = false; 
+            audioEl.volume = 1; // Sesi tekrar 100% yaptık, kilit kırıldı!
         }).catch(e => {
             console.log("Mobil ses kilidi kırılamadı:", e);
         });
@@ -316,6 +312,7 @@ function playGoalSound(musicFile) {
     if (musicFile) {
         audioEl.src = musicFile;
         audioEl.currentTime = 0; 
+        audioEl.volume = 1; // Gol anında sesin açık olduğundan emin oluyoruz
         audioEl.play().catch(e => console.log("Ses dosyası yüklenemedi:", e));
         
         clearTimeout(goalTimeout);
@@ -532,8 +529,10 @@ function applyTeamsAndStartCountdown() {
   currentTeamA = LIGLER[lig].takimlar[document.getElementById('team-a-select').value];
   currentTeamB = LIGLER[lig].takimlar[document.getElementById('team-b-select').value];
 
+  // SES KİLİDİ BURADA KIRILIYOR (currentTeamA atandıktan sonra)
   initAudio(); 
 
+  // Skorbordda TAM İSİMLERİ yaz
   document.getElementById('label-a').innerText = currentTeamA.isim; 
   document.getElementById('logo-a').src = currentTeamA.logo || '';
   document.getElementById('logo-wrap-a').style.setProperty('--glow-color', currentTeamA.renkAna);
