@@ -263,31 +263,12 @@ const W = 400, H = 700;
 const PLINKO_TOP = 140; 
 const PLINKO_BOTTOM = H - 110; 
 
-// ─── SES SİSTEMİ VE MOBİL KİLİT KIRICI (DÜZELTİLDİ) ──────────────────────
+// ─── SES SİSTEMİ (Tamamen Düm Düz) ──────────────────────
 let audioCtx;
 function initAudio() {
     if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-
-    const audioEl = document.getElementById('audio-goal');
-    
-    // Muted yerine Volume=0 kullanıyoruz ki baştaki 1 saniyelik kaçak ses tamamen yok olsun!
-    audioEl.volume = 0; 
-    
-    if(currentTeamA && currentTeamA.muzik) {
-        audioEl.src = currentTeamA.muzik; 
-    }
-    
-    let playPromise = audioEl.play();
-    if (playPromise !== undefined) {
-        playPromise.then(() => {
-            audioEl.pause(); 
-            audioEl.currentTime = 0; 
-            audioEl.volume = 1; // Sesi tekrar 100% yaptık, kilit kırıldı!
-        }).catch(e => {
-            console.log("Mobil ses kilidi kırılamadı:", e);
-        });
-    }
+    // Başlangıçta çalma veya kandırma kodları tamamen kaldırıldı!
 }
 
 function playBounceSound() {
@@ -312,8 +293,8 @@ function playGoalSound(musicFile) {
     if (musicFile) {
         audioEl.src = musicFile;
         audioEl.currentTime = 0; 
-        audioEl.volume = 1; // Gol anında sesin açık olduğundan emin oluyoruz
-        audioEl.play().catch(e => console.log("Ses dosyası yüklenemedi:", e));
+        audioEl.volume = 1; 
+        audioEl.play().catch(e => console.log("Otomatik ses engellendi veya dosya bulunamadı:", e));
         
         clearTimeout(goalTimeout);
         goalTimeout = setTimeout(() => {
@@ -373,7 +354,7 @@ const LIGLER = {
     }
   },
   "premierlig": {
-    isim: " İngiltere Premier Lig",
+    isim: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 İngiltere Premier Lig",
     takimlar: {
       "mcity": { isim: "MANCHESTER CITY", kisa: "MCI", logo: "./mcity-logo.png", muzik: "mcity-gol.mp3", renkAna: "#6CABDD", renkIkinci: "#1C2C5B", kazandiYazisi: "🩵 MANCHESTER CITY KAZANDI!" },
       "arsenal": { isim: "ARSENAL", kisa: "ARS", logo: "./arsenal-logo.png", muzik: "arsenal-gol.mp3", renkAna: "#EF0107", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ARSENAL KAZANDI!" },
@@ -529,10 +510,9 @@ function applyTeamsAndStartCountdown() {
   currentTeamA = LIGLER[lig].takimlar[document.getElementById('team-a-select').value];
   currentTeamB = LIGLER[lig].takimlar[document.getElementById('team-b-select').value];
 
-  // SES KİLİDİ BURADA KIRILIYOR (currentTeamA atandıktan sonra)
+  // Sadece context başlatıyoruz, kandırma kodları YOK
   initAudio(); 
 
-  // Skorbordda TAM İSİMLERİ yaz
   document.getElementById('label-a').innerText = currentTeamA.isim; 
   document.getElementById('logo-a').src = currentTeamA.logo || '';
   document.getElementById('logo-wrap-a').style.setProperty('--glow-color', currentTeamA.renkAna);
@@ -644,7 +624,6 @@ function buildScene() {
     }));
   }
 
-  // SIKIŞMAYI KÖKTEN ÇÖZEN MARJ AYARI (30'dan 45'e çıkarıldı)
   const marginX = 45; 
   const rows = 9, cols = 7, pegR = 6;
   const startY = PLINKO_TOP + 40, endY = PLINKO_BOTTOM - 20;
@@ -669,13 +648,11 @@ function setupCollisions() {
   
   Matter.Events.on(engine, 'beforeUpdate', function() {
       activeBalls.forEach(ball => {
-          // Kenar duvarlardan güçlü görünmez rüzgar (Sıkışmayı imkansız kılar)
           if (ball.position.x < 35) {
               Matter.Body.applyForce(ball, ball.position, { x: 0.003, y: 0 });
           } else if (ball.position.x > W - 35) {
               Matter.Body.applyForce(ball, ball.position, { x: -0.003, y: 0 });
           }
-          // Çivi üzerinde tamamen durma ihtimaline karşı mikro titreme
           else if (Math.abs(ball.velocity.x) < 0.1 && Math.abs(ball.velocity.y) < 0.1) {
               Matter.Body.applyForce(ball, ball.position, { x: (Math.random() - 0.5) * 0.003, y: -0.002 });
           }
@@ -735,8 +712,6 @@ function setupCollisions() {
 function dropBall() {
   if (ballsLeft <= 0) return;
   
-  // Eskiden (W * 0.6) olan atış alanı (W - 80) olarak tüm sahaya yayıldı
-  // Top artık en soldan en sağa kadar tam eşit ihtimalle atılacak
   const dropX = 40 + Math.random() * (W - 80); 
   
   const ball = Matter.Bodies.circle(dropX, PLINKO_TOP - 20, 14, {
