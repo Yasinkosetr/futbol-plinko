@@ -263,11 +263,30 @@ const W = 400, H = 700;
 const PLINKO_TOP = 140; 
 const PLINKO_BOTTOM = H - 110; 
 
-// ─── SES SİSTEMİ ──────────────────────
+// ─── SES SİSTEMİ VE MOBİL KİLİT KIRICI (WAKELOCK) ──────────────────────
 let audioCtx;
 function initAudio() {
     if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+
+    // MOBİL TARAYICILARI KANDIRMA: Sesi sessizce çalıp durdurarak yetki alıyoruz
+    const audioEl = document.getElementById('audio-goal');
+    audioEl.muted = true; // Fark edilmemesi için sessize al
+    
+    if(currentTeamA && currentTeamA.muzik) {
+        audioEl.src = currentTeamA.muzik; 
+    }
+    
+    let playPromise = audioEl.play();
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            audioEl.pause(); // Hemen durdur
+            audioEl.currentTime = 0; // Başa sar
+            audioEl.muted = false; // Sesi tekrar aç (Artık kilit kırıldı)
+        }).catch(e => {
+            console.log("Mobil ses kilidi kırılamadı:", e);
+        });
+    }
 }
 
 function playBounceSound() {
@@ -321,6 +340,8 @@ const LIGLER = {
       "basaksehir": { isim: "BAŞAKŞEHİR", kisa: "BŞK", logo: "./basaksehir-logo.png", muzik: "basaksehir-gol.mp3", renkAna: "#F47321", renkIkinci: "#002A54", kazandiYazisi: "🟠🔵 BAŞAKŞEHİR KAZANDI!" },
       "karagumruk": { isim: "KARAGÜMRÜK", kisa: "FKG", logo: "./karagumruk-logo.png", muzik: "karagumruk-gol.mp3", renkAna: "#ED1C24", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ KARAGÜMRÜK KAZANDI!" },
       "kayserispor": { isim: "KAYSERİSPOR", kisa: "KAY", logo: "./kayserispor-logo.png", muzik: "kayserispor-gol.mp3", renkAna: "#ED1C24", renkIkinci: "#FFD700", kazandiYazisi: "🔴🟡 KAYSERİSPOR KAZANDI!" },
+      "gaziantep": { isim: "GAZİANTEP FK", kisa: "GFK", logo: "./gaziantep-logo.png", muzik: "gaziantep-gol.mp3", renkAna: "#E32219", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ GAZİANTEP FK KAZANDI!" },
+      "genclerbirligi": { isim: "GENÇLERBİRLİĞİ", kisa: "GEN", logo: "./genclerbirligi-logo.png", muzik: "genclerbirligi-gol.mp3", renkAna: "#ED1C24", renkIkinci: "#000000", kazandiYazisi: "🔴⚫ GENÇLERBİRLİĞİ KAZANDI!" },
       "kocaeli": { isim: "KOCAELİSPOR", kisa: "KOC", logo: "./kocaeli-logo.png", muzik: "kocaeli-gol.mp3", renkAna: "#008037", renkIkinci: "#000000", kazandiYazisi: "🟢⚫ KOCAELİSPOR KAZANDI!" }
     }
   },
@@ -350,7 +371,7 @@ const LIGLER = {
     }
   },
   "premierlig": {
-    isim: "󠁧󠁢󠁥󠁮🇬🇧 İngiltere Premier Lig",
+    isim: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 İngiltere Premier Lig",
     takimlar: {
       "mcity": { isim: "MANCHESTER CITY", kisa: "MCI", logo: "./mcity-logo.png", muzik: "mcity-gol.mp3", renkAna: "#6CABDD", renkIkinci: "#1C2C5B", kazandiYazisi: "🩵 MANCHESTER CITY KAZANDI!" },
       "arsenal": { isim: "ARSENAL", kisa: "ARS", logo: "./arsenal-logo.png", muzik: "arsenal-gol.mp3", renkAna: "#EF0107", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ARSENAL KAZANDI!" },
@@ -502,11 +523,12 @@ function updateTeamsDropdown() {
 
 // ─── GERİ SAYIM VE OTOMATİK BAŞLANGIÇ ──────────────────────────
 function applyTeamsAndStartCountdown() {
-  initAudio(); 
-
   const lig = document.getElementById('league-select').value;
   currentTeamA = LIGLER[lig].takimlar[document.getElementById('team-a-select').value];
   currentTeamB = LIGLER[lig].takimlar[document.getElementById('team-b-select').value];
+
+  // SES KİLİDİ BURADA KIRILIYOR (currentTeamA atandıktan sonra)
+  initAudio(); 
 
   // Skorbordda TAM İSİMLERİ yaz
   document.getElementById('label-a').innerText = currentTeamA.isim; 
