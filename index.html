@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Plinko Lig Savaşları Pro</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
@@ -19,7 +19,8 @@
   html, body {
     width: 100%; height: 100%;
     background: #020602;
-    display: flex; justify-content: center; align-items: center;
+    display: flex; justify-content: center; 
+    align-items: flex-start; /* Oyunu ortalamak yerine en yukarı yaslar */
     font-family: 'Rajdhani', sans-serif;
     overflow: hidden;
     touch-action: none;
@@ -28,6 +29,9 @@
   #game-wrapper {
     position: relative;
     width: 400px; height: 700px;
+    /* Çentik (Notch) mesafesini otomatik alır, çentik yoksa minimum 10px boşluk bırakır */
+    margin-top: max(env(safe-area-inset-top), 10px); 
+    transform-origin: top center; /* Ekran küçükse üstten aşağıya doğru küçülür */
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 0 2px rgba(255,255,255,0.05);
@@ -269,9 +273,8 @@ function initAudio() {
     if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     if (audioCtx.state === 'suspended') { audioCtx.resume(); }
 
-    // MOBİL TARAYICILARI KANDIRMA: Sesi sessizce çalıp durdurarak yetki alıyoruz
     const audioEl = document.getElementById('audio-goal');
-    audioEl.muted = true; // Fark edilmemesi için sessize al
+    audioEl.muted = true; 
     
     if(currentTeamA && currentTeamA.muzik) {
         audioEl.src = currentTeamA.muzik; 
@@ -280,9 +283,9 @@ function initAudio() {
     let playPromise = audioEl.play();
     if (playPromise !== undefined) {
         playPromise.then(() => {
-            audioEl.pause(); // Hemen durdur
-            audioEl.currentTime = 0; // Başa sar
-            audioEl.muted = false; // Sesi tekrar aç (Artık kilit kırıldı)
+            audioEl.pause(); 
+            audioEl.currentTime = 0; 
+            audioEl.muted = false; 
         }).catch(e => {
             console.log("Mobil ses kilidi kırılamadı:", e);
         });
@@ -371,7 +374,7 @@ const LIGLER = {
     }
   },
   "premierlig": {
-    isim: " İngiltere Premier Lig",
+    isim: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 İngiltere Premier Lig",
     takimlar: {
       "mcity": { isim: "MANCHESTER CITY", kisa: "MCI", logo: "./mcity-logo.png", muzik: "mcity-gol.mp3", renkAna: "#6CABDD", renkIkinci: "#1C2C5B", kazandiYazisi: "🩵 MANCHESTER CITY KAZANDI!" },
       "arsenal": { isim: "ARSENAL", kisa: "ARS", logo: "./arsenal-logo.png", muzik: "arsenal-gol.mp3", renkAna: "#EF0107", renkIkinci: "#FFFFFF", kazandiYazisi: "🔴⚪ ARSENAL KAZANDI!" },
@@ -720,14 +723,12 @@ function setupCollisions() {
 // ─── OTOMATİK TOP ATICI ───────────────────────────────────────
 function dropBall() {
   if (ballsLeft <= 0) return;
-  // Top sol veya sağ köşeye sıkışmasın diye tamamen rastgele atış (40px marj ile)
   const dropX = 40 + Math.random() * (W - 80); 
   const ball = Matter.Bodies.circle(dropX, PLINKO_TOP - 20, 14, {
     restitution: 0.75, friction: 0, frictionAir: 0.015, density: 0.005,
     render: { fillStyle: 'transparent', strokeStyle: 'transparent' }, label: 'ball'
   });
 
-  // Topa çok hafif bir sağ sol başlangıç hızı da verdik
   Matter.Body.setVelocity(ball, { x: (Math.random() - 0.5) * 3, y: 0 });
   Matter.World.add(world, ball);
   activeBalls.push(ball);
