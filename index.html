@@ -391,30 +391,97 @@
     white-space: nowrap;
   }
 
+
+/* ARENA — presentation only. The original 400 × 700 physics space is retained. */
+:root { --gold:#e8ca87; --gold-dim:#ac8750; --muted:#8eaaa3; --border:rgba(184,216,202,.17); }
+html,body { background:#060e12; background-image:radial-gradient(ellipse at 50% 30%,#18312f 0%,#0a161b 45%,#060c11 80%); }
+#game-wrapper { height:740px; border-radius:18px; flex-shrink:0; box-shadow:0 0 0 1px #46594c,0 0 0 5px #0d191d,0 30px 100px #000a; }
+/* Add 40px to the header without resizing or covering the original playing area. */
+#stadium-canvas { position:absolute; top:40px; left:0; width:400px; height:700px; pointer-events:none; }
+#game-canvas { top:40px; z-index:1; }
+#ui-layer { top:40px; z-index:2; }
+#scoreboard { top:-40px; height:112px; padding:0 24px; gap:4px; justify-content:center; background:linear-gradient(120deg,#0c1a22,#142630 50%,#0b1921); border-bottom:2px solid #c6aa70; box-shadow:0 5px 18px #0007; }
+.score-block { position:relative; flex-direction:row; justify-content:center; width:148px; flex-shrink:0; min-width:0; height:110px; gap:7px; }
+.score-block::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--team-color,#e8ca87); opacity:.8; }
+.away-block { flex-direction:row-reverse; }
+.team-badge { gap:6px; flex-direction:column; justify-content:center; min-width:0; width:107px; }
+.away-block .team-badge { flex-direction:column; }
+.team-dot { display:flex; align-items:center; justify-content:center; width:38px; height:42px; border-radius:5px 5px 14px 14px; border:1px solid #ffffff77; box-shadow:inset 0 0 0 2px #07131b99,0 2px 5px #0004; position:relative; overflow:hidden; }
+.team-dot::after { content:attr(data-initials); font:bold 14px 'Rajdhani',Arial,sans-serif; color:#fff; text-shadow:0 1px 3px #000,1px 0 2px #000,-1px 0 2px #000; }
+.team-dot img { display:none; width:100%; height:100%; object-fit:contain; }
+.team-dot.has-logo { background:transparent!important; border-color:transparent; border-radius:0; box-shadow:none; overflow:visible; }
+.team-dot.has-logo img { display:block; }
+.team-dot.has-logo::after { content:none; }
+.team-label { font-family:'Rajdhani',Arial,sans-serif; font-size:12px; font-weight:700; line-height:1.12; letter-spacing:.2px; text-align:center; overflow-wrap:anywhere; text-shadow:none!important; }
+.away-block .team-label { text-align:center; }
+.score-num { font-family:'Bebas Neue',Impact,sans-serif; font-size:43px; min-width:30px; text-align:center; font-variant-numeric:tabular-nums; text-shadow:none; color:#f6f7ed; }
+.score-bump { transform:scale(1.23)!important; color:#edce8d; }
+#ball-counter { width:40px; min-width:40px; height:38px; justify-content:center; gap:0; border-left:1px solid #ffffff1b; border-right:1px solid #ffffff1b; }
+#ball-label { font-size:7px; letter-spacing:1.7px; color:#8aa5a8; }
+#ball-count { font-size:25px; color:#e8ca87; text-shadow:none; }
+#btn-area { top:84px; }
+#drop-btn { display:flex; align-items:center; gap:18px; font-size:12px; letter-spacing:2px; padding:9px 18px; border-radius:4px; color:#142320; background:linear-gradient(120deg,#f3dcaa,#c4a166); box-shadow:0 3px 16px #0008,inset 0 1px #fff7; animation:none; }
+#drop-btn:hover { filter:brightness(1.12); }
+#drop-btn span { font-size:8px; }
+#setup-modal { top:-40px; height:740px; align-items:stretch; justify-content:center; padding:34px; background:radial-gradient(ellipse at 50% 16%,#31564e66,transparent 53%),linear-gradient(155deg,#10282c,#08171e 65%,#10242b); }
+#setup-modal::before { inset:16px; border:1px solid #c6d5b916; border-radius:3px; background:repeating-linear-gradient(0deg,transparent 0 63px,#9abaac04 63px 126px); }
+#setup-modal::after { content:''; position:absolute; width:225px; height:225px; border:1px solid #c6d5b911; border-radius:50%; left:86px; top:30px; pointer-events:none; }
+.setup-header { margin-bottom:29px; text-align:left; }
+.setup-kicker { display:flex; align-items:center; gap:7px; color:#9ab4b1; font-size:9px; letter-spacing:2px; font-weight:700; }
+.setup-kicker i { width:5px; height:5px; background:#e8ca87; border-radius:50%; }
+.setup-trophy { display:block; margin:25px 0 10px; font-size:38px; line-height:1; color:#e8ca87; filter:none; }
+.setup-title { font-size:56px; letter-spacing:2px; line-height:1; background:linear-gradient(120deg,#fff5d9,#d9bb81); background-clip:text; -webkit-background-clip:text; }
+.setup-subtitle { font-size:10px; font-weight:600; letter-spacing:2.3px; margin-top:12px; color:#8ea8a4; }
+.setup-form { position:relative; max-width:none; }
+.form-group { margin-bottom:16px; }
+.form-group label { font-size:9px; letter-spacing:1.7px; color:#89aaa5; padding-left:0; margin-bottom:7px; }
+.form-group select { border-radius:5px; padding:13px 36px 13px 14px; background-color:#112a30; border-color:#b3cfc825; font-size:15px; box-shadow:inset 0 1px #ffffff05; }
+.form-group select option { background:#10252d; }
+.form-group select:focus { border-color:#dcc28c; background-color:#19393e; }
+.vs-divider { margin:-2px 0 12px; }
+.vs-badge { font-size:12px; letter-spacing:2px; border:none; border-radius:0; background:none; padding:0 4px; color:#e0c48f; }
+#start-setup-btn { display:flex; align-items:center; justify-content:space-between; margin-top:23px; padding:16px 18px; border-radius:5px; color:#10241f; background:linear-gradient(110deg,#f0d9a5,#c9a66c); font-size:19px; letter-spacing:2.5px; box-shadow:0 8px 22px #0004,inset 0 1px #fff6; }
+#start-setup-btn:hover { box-shadow:0 10px 25px #0006; filter:brightness(1.06); }
+#game-over { top:calc(50% - 20px); background:linear-gradient(145deg,#112a30f7,#08171efc); border-color:#cfb47a; border-radius:10px; box-shadow:0 20px 70px #000c,0 0 0 1000px #02101166; }
+.game-over-icon { font-size:32px; }
+#game-over h2 { color:#ecd39b; }
+.final-score-display { border-radius:5px; background:#ffffff04; gap:12px; }
+.final-score-team { flex:1; min-width:0; }
+.final-team-name { font-size:10px; letter-spacing:.6px; overflow-wrap:anywhere; }
+.final-score-num.winner { color:#ecd39b; text-shadow:none; }
+#restart-btn { background:linear-gradient(110deg,#f0d9a5,#c9a66c); border-radius:5px; box-shadow:none; }
+:is(button,select):focus-visible { outline:2px solid #fff2cb; outline-offset:4px; }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+/* Scale the presentation, never the simulation coordinates. `scale` coexists with goal shake. */
+@media (max-height:720px) { #game-wrapper { transform:none; } }
+@media (max-height:640px) { #game-wrapper { transform:none; } }
+#game-wrapper { scale:var(--arena-scale,1); }
+
 </style>
 </head>
 <body>
 
 <div id="game-wrapper">
+  <canvas id="stadium-canvas" width="800" height="1400" aria-hidden="true"></canvas>
   <canvas id="game-canvas" width="400" height="700"></canvas>
 
   <div id="ui-layer">
 
     <div id="setup-modal">
       <div class="setup-header">
-        <span class="setup-trophy">🏆</span>
+        <span class="setup-kicker"><i></i> MAÇ GÜNÜ / PLINKO ARENA</span><span class="setup-trophy" aria-hidden="true">✦</span>
         <div class="setup-title">LİG SAVAŞI</div>
-        <div class="setup-subtitle">Plinko Futbol Simülatörü</div>
+        <div class="setup-subtitle">10 TOP. İKİ TAKIM. TEK GALİP.</div>
       </div>
 
       <div class="setup-form">
         <div class="form-group">
-          <label>Lig Seç</label>
+          <label for="league-select">01 / LİGİNİ SEÇ</label>
           <select id="league-select" onchange="updateTeamsDropdown()"></select>
         </div>
 
         <div class="form-group">
-          <label>⚽ Ev Sahibi</label>
+          <label for="team-a-select">02 / EV SAHİBİ</label>
           <select id="team-a-select"></select>
         </div>
 
@@ -425,16 +492,16 @@
         </div>
 
         <div class="form-group">
-          <label>✈️ Deplasman</label>
+          <label for="team-b-select">03 / DEPLASMAN</label>
           <select id="team-b-select"></select>
         </div>
 
-        <button id="start-setup-btn" onclick="applyTeamsAndShowGame()">⚽ Sahaya Çık</button>
+        <button id="start-setup-btn" onclick="applyTeamsAndShowGame()">SAHAYA ÇIK <span aria-hidden="true">↗</span></button>
       </div>
     </div>
 
     <div id="scoreboard">
-      <div class="score-block">
+      <div class="score-block home-block">
         <div class="team-badge">
           <div class="team-dot" id="dot-a"></div>
           <div class="team-label" id="label-a">EV SAHİBİ</div>
@@ -443,11 +510,11 @@
       </div>
 
       <div id="ball-counter">
-        <div id="ball-label">Kalan Top</div>
+        <div id="ball-label">KALAN</div>
         <div id="ball-count">10</div>
       </div>
 
-      <div class="score-block">
+      <div class="score-block away-block">
         <div class="team-badge">
           <div class="team-dot" id="dot-b"></div>
           <div class="team-label" id="label-b">DEPLASMAN</div>
@@ -457,7 +524,7 @@
     </div>
 
     <div id="btn-area">
-      <button id="drop-btn" onclick="startAutoMatch()">⚽ &nbsp;MAÇI BAŞLAT</button>
+      <button id="drop-btn" onclick="startAutoMatch()">MAÇI BAŞLAT <span aria-hidden="true">▶</span></button>
     </div>
 
     <div id="game-over">
@@ -1014,135 +1081,155 @@ function checkGameOver() {
 
 // ─── CANVAS DRAWING ───────────────────────────────────
 function drawFieldBackground() {
-  const ctx = render.context;
-  if (!ctx) return;
-  ctx.save();
+  // Separate, cached decorative canvas: Matter clears its own canvas before each frame.
+  const key = [document.getElementById('league-select').value,currentTeamA.isim,currentTeamA.renkAna,currentTeamA.renkIkinci,currentTeamB.isim,currentTeamB.renkAna,currentTeamB.renkIkinci].join('|');
+  if (drawFieldBackground.key === key) return;
+  drawFieldBackground.key = key;
+  const canvas = document.getElementById('stadium-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(2,0,0,2,0,0);
+  ctx.clearRect(0,0,W,H);
+  const a = currentTeamA.renkAna || '#e8ca87';
+  const b = currentTeamB.renkAna || '#e8ca87';
+  document.querySelector('.home-block').style.setProperty('--team-color',a);
+  document.querySelector('.away-block').style.setProperty('--team-color',b);
+  updateTeamCrest('dot-a',currentTeamA);
+  updateTeamCrest('dot-b',currentTeamB);
 
-  // Field gradient
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0,   '#0d2a0d');
-  grad.addColorStop(0.5, '#1a4a1a');
-  grad.addColorStop(1,   '#0d2a0d');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-
-  // Grass stripes
-  ctx.fillStyle = 'rgba(0,0,0,0.07)';
-  for (let y = PLINKO_TOP; y < PLINKO_BOTTOM; y += 80) {
-    ctx.fillRect(0, y, W, 40);
+  ctx.fillStyle='#08191f'; ctx.fillRect(0,0,W,H);
+  // The stands recede behind the playing surface.
+  const stand=ctx.createLinearGradient(0,72,0,160);
+  stand.addColorStop(0,'#061118'); stand.addColorStop(.6,'#253b3d'); stand.addColorStop(1,'#0c2529');
+  ctx.fillStyle=stand; ctx.fillRect(0,72,W,100);
+  for(let row=0;row<6;row++) {
+    const y=77+row*6;
+    ctx.fillStyle='#020d1466'; ctx.fillRect(0,y+4,400,2);
+    for(let col=0;col<80;col++) {
+      const seed=(col*17+row*31)%19;
+      ctx.fillStyle=seed<3?'#c3cab46b':seed<7?'#54777a99':seed<10?'#b5a16e77':'#142c35';
+      ctx.fillRect(col*5+(row%2)*2,y,2,3);
+    }
   }
+  // Slim terraces at the touchlines; no playable space is covered.
+  for(let y=124;y<588;y+=8) {
+    ctx.fillStyle=(y%16===0)?'#435655':'#233d40';
+    ctx.fillRect(2,y,8,3); ctx.fillRect(390,y,8,3);
+  }
+  const turf=ctx.createLinearGradient(0,117,400,590);
+  turf.addColorStop(0,'#185546'); turf.addColorStop(.46,'#28765a'); turf.addColorStop(1,'#123f37');
+  ctx.fillStyle=turf; ctx.fillRect(14,117,372,473);
+  for(let y=117,i=0;y<590;y+=47.3,i++) {
+    ctx.fillStyle=i%2?'#c6edb805':'#001f261b'; ctx.fillRect(14,y,372,47.3);
+  }
+  // Deterministic grass grain: never consumes the gameplay's Math.random sequence.
+  let grain=81;
+  for(let i=0;i<10500;i++) {
+    grain=(Math.imul(grain,1664525)+1013904223)>>>0; const x=15+grain%370;
+    grain=(Math.imul(grain,1664525)+1013904223)>>>0; const y=118+grain%471;
+    ctx.fillStyle=i%2?'#def6bb0b':'#001e210d'; ctx.fillRect(x,y,.55,1.5);
+  }
+  const light=ctx.createRadialGradient(200,280,20,200,330,300);
+  light.addColorStop(0,'#c8ebb112'); light.addColorStop(.55,'#5cab7100'); light.addColorStop(1,'#001c2a80');
+  ctx.fillStyle=light;ctx.fillRect(14,117,372,473);
 
-  // Center dashed line
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([10, 10]);
-  ctx.beginPath();
-  ctx.moveTo(W / 2, PLINKO_TOP + 10);
-  ctx.lineTo(W / 2, PLINKO_BOTTOM - 10);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.strokeStyle='#cde8cc33'; ctx.lineWidth=1;
+  ctx.strokeRect(21,124,358,458);
+  ctx.beginPath();ctx.moveTo(21,353);ctx.lineTo(379,353);ctx.stroke();
+  ctx.beginPath();ctx.arc(200,353,58,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#dce8c955';ctx.beginPath();ctx.arc(200,353,2,0,Math.PI*2);ctx.fill();
+  ctx.strokeRect(111,124,178,68);ctx.strokeRect(157,124,86,25);
+  ctx.strokeRect(111,514,178,68);ctx.strokeRect(157,557,86,25);
+  ctx.beginPath();ctx.arc(200,171,39,.18*Math.PI,.82*Math.PI);ctx.stroke();
+  ctx.beginPath();ctx.arc(200,535,39,1.18*Math.PI,1.82*Math.PI);ctx.stroke();
+  // LED ribbon and stadium rails.
+  ctx.fillStyle='#071b23';ctx.fillRect(12,111,376,9);
+  ctx.fillStyle='#bdccac77';ctx.font='600 5px Rajdhani,Arial';ctx.textAlign='center';
+  [55,152,248,345].forEach(x=>ctx.fillText('L İ G   S A V A Ş I',x,117));
+  ctx.fillStyle='#b2d9bd22';ctx.fillRect(12,120,1,470);ctx.fillRect(387,120,1,470);
+  // Floodlights and translucent light cones, all behind the balls and pegs.
+  [27,373].forEach(x=>{
+    const glow=ctx.createRadialGradient(x,83,1,x,83,110);
+    glow.addColorStop(0,'#d5f1da3b');glow.addColorStop(1,'#d5f1da00');
+    ctx.fillStyle=glow;ctx.fillRect(x-110,72,220,130);
+    const beam=ctx.createLinearGradient(x,85,x,270);
+    beam.addColorStop(0,'#d6f3d31c');beam.addColorStop(1,'#d6f3d300');
+    ctx.fillStyle=beam;ctx.beginPath();ctx.moveTo(x-12,84);ctx.lineTo(x+12,84);ctx.lineTo(x+95,285);ctx.lineTo(x-95,285);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#0c1b20';ctx.fillRect(x-18,78,36,11);
+    ctx.shadowBlur=9;ctx.shadowColor='#dfffe1';ctx.fillStyle='#ecf6db';
+    for(let i=0;i<6;i++){ctx.fillRect(x-15+i*5,80,3,2);ctx.fillRect(x-15+i*5,84,3,2);}
+    ctx.shadowBlur=0;
+  });
+  // Existing five scoring lanes; each retains exactly the same boundaries.
+  for(let i=0;i<5;i++) {
+    const x=i*80,goal=i===1||i===3,color=i===1?a:b;
+    const lane=ctx.createLinearGradient(x,590,x,700);
+    lane.addColorStop(0,goal?'#1b3338':'#101f27');lane.addColorStop(1,'#07121a');
+    ctx.fillStyle=lane;ctx.fillRect(x,590,80,110);
+    if(goal) {
+      ctx.save();ctx.globalAlpha=.18;ctx.fillStyle=color;ctx.fillRect(x+2,594,76,106);ctx.restore();
+      ctx.fillStyle=color;ctx.fillRect(x+4,591,72,3);
+      ctx.strokeStyle='#d9e9df19';ctx.lineWidth=.6;
+      for(let xx=x+6;xx<x+78;xx+=9){ctx.beginPath();ctx.moveTo(xx,637);ctx.lineTo(xx,689);ctx.stroke();}
+      for(let yy=638;yy<691;yy+=8){ctx.beginPath();ctx.moveTo(x+6,yy);ctx.lineTo(x+74,yy);ctx.stroke();}
+      ctx.strokeStyle='#e7f3e760';ctx.lineWidth=1.3;ctx.strokeRect(x+6,637,68,52);
+    } else {
+      ctx.strokeStyle='#93aaa711';ctx.lineWidth=1;
+      for(let yy=601;yy<690;yy+=12){ctx.beginPath();ctx.moveTo(x+27,yy);ctx.lineTo(x+40,yy+6);ctx.lineTo(x+53,yy);ctx.stroke();}
+      ctx.fillStyle='#52696b';ctx.fillRect(x+29,592,22,2);
+    }
+  }
+  ctx.fillStyle='#09151c';ctx.fillRect(0,693,400,7);
+  ctx.fillStyle='#cbb17a66';ctx.fillRect(0,693,400,1);
+}
 
-  // ── Bins ─────────────────────────────────────────────
-  const binW  = W / 5;
-  const binTop = H - 110;
-
-  // Dark border top of bins
-  ctx.fillStyle = 'rgba(255,255,255,0.07)';
-  ctx.fillRect(0, binTop, W, 2);
-
-  // AUT bins: left, center, right
-  const autGrad = ctx.createLinearGradient(0, binTop, 0, H);
-  autGrad.addColorStop(0, 'rgba(40,40,40,0.92)');
-  autGrad.addColorStop(1, 'rgba(20,20,20,0.98)');
-  ctx.fillStyle = autGrad;
-  ctx.fillRect(0,          binTop, binW,     110);
-  ctx.fillRect(binW * 2,   binTop, binW,     110);
-  ctx.fillRect(binW * 4,   binTop, binW,     110);
-
-  // Team A bin
-  const gA = ctx.createLinearGradient(binW, binTop, binW * 2, binTop);
-  gA.addColorStop(0, currentTeamA.renkAna);
-  gA.addColorStop(1, currentTeamA.renkIkinci);
-  ctx.fillStyle = gA;
-  ctx.fillRect(binW, binTop, binW, 110);
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(binW, binTop, binW, 30);
-
-  // Team B bin
-  const gB = ctx.createLinearGradient(binW * 3, binTop, binW * 4, binTop);
-  gB.addColorStop(0, currentTeamB.renkAna);
-  gB.addColorStop(1, currentTeamB.renkIkinci);
-  ctx.fillStyle = gB;
-  ctx.fillRect(binW * 3, binTop, binW, 110);
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(binW * 3, binTop, binW, 30);
-
-  // Scoreboard area background
-  ctx.fillStyle = 'rgba(0,0,0,0)';
-  ctx.fillRect(0, 0, W, PLINKO_TOP);
-
-  ctx.restore();
+function updateTeamCrest(id,team) {
+  const badge=document.getElementById(id);
+  badge.classList.remove('has-logo');
+  badge.replaceChildren();
+  badge.dataset.initials=team.isim.split(/\s+/).map(word=>word[0]).join('').slice(0,3).toLocaleUpperCase('tr-TR');
+  if(team.isim==='FENERBAHÇE')badge.dataset.initials='FB';
+  if(team.isim==='GALATASARAY')badge.dataset.initials='GS';
+  if(team.isim==='BEŞİKTAŞ')badge.dataset.initials='BJK';
+  badge.style.background=`linear-gradient(135deg,${team.renkAna},${team.renkIkinci||'#243e48'})`;
+  if(!team.logo)return;
+  const img=new Image();
+  img.alt=''; // The adjacent full team name supplies the accessible label.
+  img.onload=()=>{if(img.parentElement===badge)badge.classList.add('has-logo');};
+  img.onerror=()=>img.remove(); // Missing supplied assets retain a legible team crest.
+  badge.appendChild(img);
+  img.src=team.logo;
 }
 
 function drawForegroundLabels() {
-  const ctx = render.context;
-  if (!ctx) return;
-  ctx.save();
-
-  const binW   = W / 5;
-  const binTop = H - 110;
-
-  ctx.textAlign = 'center';
-
-  function splitName(name, maxLen) {
-    if (name.length <= maxLen) return [name];
-    const mid = Math.floor(name.length / 2);
-    const sp  = name.lastIndexOf(' ', mid) !== -1 ? name.lastIndexOf(' ', mid) : mid;
-    return [name.slice(0, sp).trim(), name.slice(sp).trim()];
-  }
-
-  // AUT labels (Arka planda kalır, normal çizilir)
-  ctx.font = 'bold 13px Rajdhani, Arial';
-  ctx.fillStyle = 'rgba(180,180,180,0.7)';
-  [[0.5, 'AUT'], [2.5, 'AUT'], [4.5, 'AUT']].forEach(([slot, txt]) => {
-    ctx.fillText(txt, slot * binW, binTop + 48);
+  const ctx=render.context;
+  if(!ctx)return;
+  ctx.save();ctx.textAlign='center';
+  [40,200,360].forEach(x=>{
+    ctx.fillStyle='#899b9d';ctx.font='600 11px Rajdhani,Arial';ctx.fillText('AUT',x,626);
+    ctx.fillStyle='#486268';ctx.font='18px Rajdhani,Arial';ctx.fillText('×',x,664);
   });
-
-  // Takım Yazılarını Her Türlü Renk Üzerinde Okunabilir Yapma Fonksiyonu
-  function drawOutlinedText(text, x, y) {
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(0,0,0,0.9)'; // Siyah kalın dış çerçeve
-      ctx.strokeText(text, x, y);
-      ctx.fillStyle = '#ffffff'; // İçerisi her zaman tam beyaz
-      ctx.fillText(text, x, y);
-  }
-
-  // Team A label
-  const linesA   = splitName(currentTeamA.isim, 8);
-  ctx.font       = 'bold 13px Rajdhani, Arial';
-  if (linesA.length === 2) {
-    drawOutlinedText(linesA[0], 1.5 * binW, binTop + 38);
-    drawOutlinedText(linesA[1], 1.5 * binW, binTop + 51);
-  } else {
-    drawOutlinedText(linesA[0], 1.5 * binW, binTop + 44);
-  }
-  ctx.font = '24px serif';
-  ctx.fillText('🥅', 1.5 * binW, binTop + 85); // Emojilere gölge gerekmez
-
-  // Team B label
-  const linesB   = splitName(currentTeamB.isim, 8);
-  ctx.font       = 'bold 13px Rajdhani, Arial';
-  if (linesB.length === 2) {
-    drawOutlinedText(linesB[0], 3.5 * binW, binTop + 38);
-    drawOutlinedText(linesB[1], 3.5 * binW, binTop + 51);
-  } else {
-    drawOutlinedText(linesB[0], 3.5 * binW, binTop + 44);
-  }
-  ctx.font = '24px serif';
-  ctx.fillText('🥅', 3.5 * binW, binTop + 85);
-
+  [[currentTeamA,120],[currentTeamB,280]].forEach(([team,x])=>{
+    ctx.fillStyle='#f3f2e5';
+    let size=11;ctx.font=`700 ${size}px Rajdhani,Arial`;
+    // Fit full club names; no arbitrary splits through the middle of a name.
+    const words=team.isim.split(' ');let lines=[team.isim];
+    if(ctx.measureText(team.isim).width>70&&words.length>1){const cut=Math.ceil(words.length/2);lines=[words.slice(0,cut).join(' '),words.slice(cut).join(' ')];}
+    while(size>7&&lines.some(line=>ctx.measureText(line).width>70)){size-=.5;ctx.font=`700 ${size}px Rajdhani,Arial`;}
+    lines.forEach((line,i)=>ctx.fillText(line,x,(lines.length===1?621:615)+i*11));
+    ctx.shadowColor='#000';ctx.shadowBlur=8;ctx.font='24px Bebas Neue,Impact,sans-serif';ctx.fillText('GOL',x,671);
+    ctx.shadowBlur=0;
+  });
   ctx.restore();
 }
+
+// Responsive display only. Physics stays at 400 × 700, including goal animations.
+function fitArenaPresentation(){
+  const scale=Math.min(1,(window.innerWidth-18)/400,(window.innerHeight-18)/740);
+  document.getElementById('game-wrapper').style.setProperty('--arena-scale',Math.max(.1,scale));
+}
+window.addEventListener('resize',fitArenaPresentation);
+fitArenaPresentation();
+
 
 // ─── BOOT ─────────────────────────────────────────────
 populateLeagueSelect();
